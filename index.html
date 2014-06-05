@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <title>aPagination - simple and powerful jQuery pagination plugin</title>
+
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <link rel="stylesheet" type="text/css" href="src/apagination.css">
+        
+        <script type="text/javascript" src="libs/jquery-1.11.1.min.js"></script>
+
+        <script type="text/javascript" src="src/jquery.apagination.js"></script>
+
+        <script>
+            $(document).ready(function() {
+                $('#paginator').aPagination({
+                    resultContainer: '#result'
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="result">
+            //Result
+        </div>
+
+        <div id="paginator" class="apg-container">
+            <div class="apg-more-container">
+                <a href="#more" class="apg-more">Еще</a>
+            </div>
+            <div class="apg-pages-container">
+                <div>
+                    <a href="#prev" class="apg-prev"></a>
+                    <div class="apg-pages">
+                        <a href="#1" class="apg-link">1</a>
+                        <a href="#2" class="apg-link">2</a>
+                        <a href="#3" class="apg-link">3</a>
+                        <a href="#4" class="apg-link">4</a>
+                        <a href="#5" class="apg-link">5</a>
+                        <a href="#6" class="apg-link">6</a>
+                        <a href="#7" class="apg-link">7</a>
+                        <a href="#8" class="apg-link">8</a>
+                        <a href="#9" class="apg-link">9</a>
+                        <a href="#10" class="apg-link">10</a>
+                        <a href="#11" class="apg-link">11</a>
+                        <a href="#12" class="apg-link">12</a>
+                        <a href="#13" class="apg-link">13</a>
+                        <a href="#14" class="apg-link">14</a>
+                        <a href="#15" class="apg-link">15</a>
+                        <a href="#16" class="apg-link">16</a>
+                        <a href="#17" class="apg-link">17</a>
+                        <a href="#18" class="apg-link">18</a>
+                        <a href="#19" class="apg-link">19</a>
+                        <a href="#20" class="apg-link">20</a>
+                    </div>
+                    <a href="#next" class="apg-next"></a>
+                </div>
+                <div class="apg-slider-container"> 
+                    <span class="apg-slider-trigger"></span>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
