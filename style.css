@@ -1,0 +1,16 @@
+html {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 14px;
+	line-height: 1.4;
+	color: #333;
+}
+
+.wrapper {
+	width: 1024px;
+	margin: 0 auto;
+}
+
+.result {
+	padding: 20px;
+	border: 1px solid #ddd;
+}
