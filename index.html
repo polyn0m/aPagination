@@ -6,12 +6,19 @@
         <link rel="stylesheet" type="text/css" href="src/apagination.css">
         
         <script type="text/javascript" src="libs/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="libs/jquery.mousewheel.min.js"></script>
 
         <script type="text/javascript" src="src/jquery.apagination.js"></script>
 
         <script>
             $(document).ready(function() {
                 $('#paginator').aPagination({
+                    showMoreButton: true,
+                    showSlider: true,
+                    showDots: true,
+                    totalPages: 200,
+                    order: 'forward',
+                    linksCount: 'max',
                     resultContainer: '#result'
                 });
             });
@@ -23,9 +30,6 @@
             </div>
 
             <div id="paginator" class="apg-container">
-                <div class="apg-more-container">
-                    <a href="#more" class="apg-more">More ↓</a>
-                </div>
                 <div class="apg-pages-container">
                     <div class="apg-pages-links">
                         <a href="#prev" class="apg-prev-link">←</a>
@@ -52,13 +56,6 @@
                             <a href="#20" class="apg-link">20</a>
                         </div>
                         <a href="#next" class="apg-next-link">→</a>
-                    </div>
-                    <div class="apg-slider-container"> 
-                        <span class="apg-slider-scroll"></span>
-                        <span class="apg-slider-scroller">
-                            <span class="apg-slider-trigger"></span>
-                        </span>
-                        <span class="apg-slider-flag"></span>
                     </div>
                 </div>
             </div>
