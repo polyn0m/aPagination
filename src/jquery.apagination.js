@@ -208,9 +208,11 @@
                     $(document).on("mousemove", self._draggingSlider);
                     $(document).on("mousedown", '.' + cfg.cssPrefix + '-slider-trigger', self._startDragSlider);
                     $(document).on("mouseup", self._stopDragSlider);
-
-                    // mouse wheel event
                 }
+
+                self._scrollToPage(cfg.currentPage);
+
+                $(self._pagesContainer).mousewheel(self._wheelScroll);
             },
 
             _load: function(url) {
@@ -237,15 +239,21 @@
                 var link = null;
                 
                 var renderLine = function(firstRender) {
+                    var sP = self._startPage;
+                    if (cfg.showDots) {
+                        sP = self._startPage + self._direction;
+                    }
+
                     for (var i = 0; i < cfg.linksCount; i++) {
-                        var p = self._startPage + i*self._direction;
+                        var p = sP + i*self._direction;
+                        link = cfg.linkTemplate.replace(/{page}/g, p);
 
                         if (firstRender) {
-                            link = cfg.linkTemplate.replace(/{page}/g, p);
                             self._pagesContainer.append(link);
                         }
                         else {
-                            self._pagesContainer.children().eq(i).removeClass('active').text(p).attr('href', '#' + i);
+                            self._pagesContainer.children().eq(i).replaceWith(link)
+                                .removeClass('active').text(p).attr('href', '#' + i);
                         }
 
                         if (p == cfg.currentPage) {
@@ -275,17 +283,17 @@
                             .css({'margin-left': margin, 'margin-right': margin});
                     }
 
+
+
                     if (cfg.order === 'forward') {
                         self._startPage = 1;
-
+                        
                         if (cfg.showDots) {
                             link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
                             link = $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
-                            if (cfg.currentPage == 1) {
+                            if (1 == cfg.currentPage) {
                                 $(link).addClass('active');
                             }
-
-                            self._startPage++;
                         }
 
                         renderLine(true);
@@ -307,8 +315,6 @@
                             if (cfg.totalPages == cfg.currentPage) {
                                 $(link).addClass('active');
                             }
-
-                            self._startPage--;
                         }
 
                         renderLine(true);
@@ -341,15 +347,9 @@
 
                     if (cfg.order === 'forward') {
                         self._startPage = newStartPage + 1;
-                        if (cfg.showDots) {
-                            self._startPage++;
-                        }
                     }
                     else if (cfg.order === 'reverse') {
                         self._startPage = cfg.totalPages - newStartPage;
-                        if (cfg.showDots) {
-                            self._startPage--;
-                        }
                     }
                     self._renderPages();
 
@@ -365,8 +365,89 @@
                 self._slider.drag = false;
             },
 
-            _wheelScroll: function() {
+            _wheelScroll: function(event) {
+                self._startPage +=  event.deltaY*self._direction*-1;
 
+                self._checkPagesInterval();
+
+                self._scrollerToPage();
+                self._renderPages();
+            }, 
+
+            _checkPagesInterval: function() {
+                if (cfg.order === 'forward') {
+                    if (self._startPage < 1) {
+                        self._startPage = 1;
+                    }
+                    if (cfg.showDots) {
+                        if (self._startPage > cfg.totalPages - cfg.linksCount - self._direction) {
+                            self._startPage = cfg.totalPages - cfg.linksCount - self._direction;
+                        }
+                    }
+                    else {
+                        if (self._startPage > cfg.totalPages - cfg.linksCount + self._direction) {
+                            self._startPage = cfg.totalPages - cfg.linksCount + self._direction;
+                        }
+                    }
+                }
+                else if (cfg.order === 'reverse') {
+                    if (self._startPage > cfg.totalPages) {
+                        self._startPage = cfg.totalPages;
+                    }
+                    if (cfg.showDots) {
+                        if (self._startPage < cfg.linksCount - 2*self._direction) {
+                            self._startPage = cfg.linksCount - 2*self._direction;
+                        }
+                    }
+                    else {
+                        if (self._startPage < cfg.linksCount) {
+                            self._startPage = cfg.linksCount;
+                        }
+                    }
+                }
+            },
+
+            _scrollToPage: function(page) {
+                var halfLinksPage = Math.floor(cfg.linksCount / 2);
+                if (page > halfLinksPage || cfg.totalPages - page < halfLinksPage) {
+                    self._startPage = page - halfLinksPage*self._direction;
+                }
+                else if (page <= halfLinksPage) {
+                    if (cfg.order === 'forward') {
+                        self._startPage = 1;
+                    }
+                    else if (cfg.order === 'reverse') {
+                        self._startPage = cfg.linksCount;
+                    }
+                }
+                else if (cfg.totalPages - page > halfLinksPage) {
+                    self._startPage = cfg.totalPages + cfg.linksCount*self._direction;
+                }
+
+                if (cfg.showDots) {
+                    self._startPage -= self._direction;
+                }
+
+                self._checkPagesInterval();
+
+                self._scrollerToPage();
+                self._renderPages();
+            },
+
+            _scrollerToPage: function(page) {
+                if (cfg.showSlider) {
+                    if (typeof page === 'undefined') {
+                        if (cfg.order === 'forward') {
+                            page = self._startPage - 1;
+                        }
+                        else if (cfg.order === 'reverse') {
+                            page = cfg.totalPages - self._startPage;
+                        }
+                    }
+                    
+                    var newScrollerPosition = page * self._linkWidthFull / self._slider.scrollCoeff;
+                    self._slider.scroller.css({left: newScrollerPosition});
+                }
             }
         };
 
