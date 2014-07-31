@@ -245,7 +245,11 @@
                             self._pagesContainer.append(link);
                         }
                         else {
-                            self._pagesContainer.children().eq(i).text(p).attr('href', '#' + i);
+                            self._pagesContainer.children().eq(i).removeClass('active').text(p).attr('href', '#' + i);
+                        }
+
+                        if (p == cfg.currentPage) {
+                            self._pagesContainer.children().eq(i).addClass('active');
                         }
                     }
                 }
@@ -276,7 +280,10 @@
 
                         if (cfg.showDots) {
                             link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
-                            $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            link = $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            if (cfg.currentPage == 1) {
+                                $(link).addClass('active');
+                            }
 
                             self._startPage++;
                         }
@@ -285,7 +292,10 @@
 
                         if (cfg.showDots) {
                             link = cfg.linkTemplate.replace(/{page}/g, cfg.totalPages);
-                            $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                            link = $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                            if (cfg.totalPages == cfg.currentPage) {
+                                $(link).addClass('active');
+                            }
                         }
                     }
                     else if (cfg.order === 'reverse') {
@@ -293,7 +303,10 @@
 
                         if (cfg.showDots) {
                             link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
-                            $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            link = $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            if (cfg.totalPages == cfg.currentPage) {
+                                $(link).addClass('active');
+                            }
 
                             self._startPage--;
                         }
@@ -302,7 +315,11 @@
 
                         if (cfg.showDots) {
                             link = cfg.linkTemplate.replace(/{page}/g, 1);
-                            $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                            link = $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+
+                            if (1 == cfg.currentPage) {
+                                $(link).addClass('active');
+                            }
                         }
                     }
                 }
