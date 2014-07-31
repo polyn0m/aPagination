@@ -124,12 +124,10 @@
                 self._paginationContainer = $(el);
 
                 self._pagesContainer = self._paginationContainer.find('.' + cfg.cssPrefix + '-pages');
-                self._pagesContainer.empty();
 
+                self._pagesContainer.empty();
                 var link = cfg.linkTemplate.replace(/{page}/g, cfg.totalPages);
                 self._pagesContainer.append(link);
-
-                var linkPadding = $(cfg.linkSelector).innerWidth() - $(cfg.linkSelector).width();
 
                 if (!cfg.showNextPrevButtons) {
                     $('.' + cfg.cssPrefix + '-next-link, .' + cfg.cssPrefix + '-prev-link').remove();
@@ -144,64 +142,20 @@
                     cfg.linksCount = cfg.totalPages;
                     cfg.showSlider = false;
                 }
-                self._pagesContainer.empty();
-                
-                self._linkWidth = Math.floor(self._pagesContainer.width() / cfg.linksCount - linkPadding);
-                self._linkWidthFull = self._linkWidth + linkPadding;
-
-                var cPagesWidth = (self._linkWidth + linkPadding) * cfg.linksCount;
-                var sideMargin = (self._paginationContainer.width() - cPagesWidth) / 2;
-
-                self._pagesContainer.width(cPagesWidth).css({'margin-left': sideMargin + 'px', 'margin-right': sideMargin + 'px'});
-
-                if (cfg.showDots) {
-                    var margin = sideMargin + (self._linkWidth + linkPadding) + 'px';
-
-                    cfg.linksCount -= 2;
-
-                    self._pagesContainer
-                        .width(cPagesWidth - 2*(self._linkWidth + linkPadding))
-                        .css({'margin-left': margin, 'margin-right': margin});
-                }
 
                 if (cfg.order === 'forward') {
-                    self._startPage = 1;
-                    self._endPage = cfg.linksCount;
-
-                    if (cfg.showDots) {
-                        link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
-                        $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
-
-                        self._startPage = 2;
-                        self._endPage++;
-                    }
-
-                    self._renderPages();
-
-                    if (cfg.showDots) {
-                        link = cfg.linkTemplate.replace(/{page}/g, cfg.totalPages);
-                        $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
-                    }
+                    self._direction = 1;        
                 }
                 else if (cfg.order === 'reverse') {
-                    self._startPage = cfg.totalPages;
-                    self._endPage = cfg.totalPages - cfg.linksCount;
-
-                    if (cfg.showDots) {
-                        link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
-                        $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
-
-                        self._startPage--;
-                    }
-
-                    self._renderPages();
-
-                    if (cfg.showDots) {
-                        link = cfg.linkTemplate.replace(/{page}/g, 1);
-                        $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
-                    }
+                    self._direction = -1;
                 }
-                $(cfg.linkSelector).width(self._linkWidth);
+
+                self._linkPadding = $(cfg.linkSelector).innerWidth() - $(cfg.linkSelector).width();
+                self._linkWidth = Math.floor(self._pagesContainer.width() / cfg.linksCount - self._linkPadding);
+                self._linkWidthFull = self._linkWidth + self._linkPadding;
+                
+                self._pagesContainer.empty();
+                self._renderPages();
 
                 $(document).on('click', '.' + cfg.cssPrefix + '-link', self._link);
 
@@ -229,15 +183,23 @@
                         '</div>').replace(/{cssPrefix}/g, cfg.cssPrefix)
                     );
 
+                    var cPagesWidth = (self._linkWidth + self._linkPadding) * cfg.linksCount;
+                    var sideMargin = (self._paginationContainer.width() - cPagesWidth) / 2;
+
                     self._sliderContainer = self._paginationContainer.find('.' + cfg.cssPrefix + '-slider-container');
                     self._sliderContainer.width(cPagesWidth).css({'margin-left': sideMargin + 'px', 'margin-right': sideMargin + 'px'});
 
                     var scroller = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-scroller');
 
+                    var renderPages = cfg.totalPages;
+                    if (cfg.showDots) {
+                        renderPages -= 2;
+                    }
+
                     self._slider = {
                         drag: false,
                         scroller: scroller,
-                        scrollCoeff: (cfg.totalPages * self._linkWidthFull - self._pagesContainer.width()) / (self._sliderContainer.width() - scroller.width()),
+                        scrollCoeff: (renderPages * self._linkWidthFull - self._pagesContainer.width()) / (self._sliderContainer.width() - scroller.width()),
                         scrollerOffset: self._sliderContainer.offset().left,
                         scrollerMinX: 0,
                         scrollerMaxX: self._sliderContainer.width() - scroller.width()
@@ -272,22 +234,79 @@
             },
 
             _renderPages: function() {
-                self._pagesContainer.empty();
                 var link = null;
+                
+                var renderLine = function(firstRender) {
+                    for (var i = 0; i < cfg.linksCount; i++) {
+                        var p = self._startPage + i*self._direction;
 
-                if (cfg.order === 'forward') {
-                    for (var i = self._startPage; i <= self._endPage; i++) {
-                        link = cfg.linkTemplate.replace(/{page}/g, i);
-                        self._pagesContainer.append(link);
+                        if (firstRender) {
+                            link = cfg.linkTemplate.replace(/{page}/g, p);
+                            self._pagesContainer.append(link);
+                        }
+                        else {
+                            self._pagesContainer.children().eq(i).text(p).attr('href', '#' + i);
+                        }
                     }
                 }
-                else if (cfg.order === 'reverse') {
-                    for (var i = self._startPage; i >= self._endPage; i--) {
-                        link = cfg.linkTemplate.replace(/{page}/g, i);
-                        self._pagesContainer.append(link);
+
+                if (self._pagesContainer.children().size()) {
+                    renderLine(false);
+                }
+                else {
+                    self._pagesContainer.empty();
+
+                    var cPagesWidth = (self._linkWidth + self._linkPadding) * cfg.linksCount;
+                    var sideMargin = (self._paginationContainer.width() - cPagesWidth) / 2;
+
+                    self._pagesContainer.width(cPagesWidth).css({'margin-left': sideMargin + 'px', 'margin-right': sideMargin + 'px'});
+
+                    if (cfg.showDots) {
+                        var margin = sideMargin + (self._linkWidth + self._linkPadding) + 'px';
+
+                        cfg.linksCount -= 2;
+
+                        self._pagesContainer
+                            .width(cPagesWidth - 2*(self._linkWidth + self._linkPadding))
+                            .css({'margin-left': margin, 'margin-right': margin});
+                    }
+
+                    if (cfg.order === 'forward') {
+                        self._startPage = 1;
+
+                        if (cfg.showDots) {
+                            link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
+                            $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+
+                            self._startPage++;
+                        }
+
+                        renderLine(true);
+
+                        if (cfg.showDots) {
+                            link = cfg.linkTemplate.replace(/{page}/g, cfg.totalPages);
+                            $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                        }
+                    }
+                    else if (cfg.order === 'reverse') {
+                        self._startPage = cfg.totalPages;
+
+                        if (cfg.showDots) {
+                            link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
+                            $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+
+                            self._startPage--;
+                        }
+
+                        renderLine(true);
+
+                        if (cfg.showDots) {
+                            link = cfg.linkTemplate.replace(/{page}/g, 1);
+                            $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                        }
                     }
                 }
-
+                
                 $(cfg.linkSelector).width(self._linkWidth);
             },
 
@@ -304,14 +323,17 @@
                     var newStartPage = Math.floor(newScrollerPosition * self._slider.scrollCoeff / self._linkWidthFull);
 
                     if (cfg.order === 'forward') {
-                        self._startPage = newStartPage;
-                        self._endPage = newStartPage + cfg.linksCount;
+                        self._startPage = newStartPage + 1;
+                        if (cfg.showDots) {
+                            self._startPage++;
+                        }
                     }
                     else if (cfg.order === 'reverse') {
                         self._startPage = cfg.totalPages - newStartPage;
-                        self._endPage = self._startPage - cfg.linksCount;
+                        if (cfg.showDots) {
+                            self._startPage--;
+                        }
                     }
-
                     self._renderPages();
 
                     self._slider.scroller.css('left', newScrollerPosition + 'px');
