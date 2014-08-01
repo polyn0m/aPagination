@@ -129,3 +129,15 @@
 	-moz-transform: rotate(45deg);
 	transform: rotate(45deg);
 }
+
+.apg-slider-container .apg-slider-flag {
+	position: absolute;
+
+	width: 4%;
+	height: 4px;
+
+	top: 0;
+	left: 0;
+
+	background: #cacaca;
+}

@@ -190,6 +190,7 @@
                     self._sliderContainer.width(cPagesWidth).css({'margin-left': sideMargin + 'px', 'margin-right': sideMargin + 'px'});
 
                     var scroller = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-scroller');
+                    var flag = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-flag');
 
                     var renderPages = cfg.totalPages;
                     if (cfg.showDots) {
@@ -199,7 +200,9 @@
                     self._slider = {
                         drag: false,
                         scroller: scroller,
+                        flag: flag,
                         scrollCoeff: (renderPages * self._linkWidthFull - self._pagesContainer.width()) / (self._sliderContainer.width() - scroller.width()),
+                        scrollFlagCoeff: self._sliderContainer.width() / renderPages,
                         scrollerOffset: self._sliderContainer.offset().left,
                         scrollerMinX: 0,
                         scrollerMaxX: self._sliderContainer.width() - scroller.width()
@@ -208,11 +211,15 @@
                     $(document).on("mousemove", self._draggingSlider);
                     $(document).on("mousedown", '.' + cfg.cssPrefix + '-slider-trigger', self._startDragSlider);
                     $(document).on("mouseup", self._stopDragSlider);
+
+                    $(document).on("click", '.' + cfg.cssPrefix + '-slider-scroll', self._clickScroll);
+                }
+
+                if ($.fn.mousewheel) {
+                    $(self._pagesContainer).mousewheel(self._wheelScroll);
                 }
 
                 self._scrollToPage(cfg.currentPage);
-
-                $(self._pagesContainer).mousewheel(self._wheelScroll);
             },
 
             _load: function(url) {
@@ -335,25 +342,7 @@
 
             _draggingSlider: function(event) {
                 if (self._slider.drag) {
-                    var newScrollerPosition = event.pageX - self._slider.scroller.width() / 2 - self._slider.scrollerOffset;
-                    if (newScrollerPosition < self._slider.scrollerMinX) {
-                        newScrollerPosition = self._slider.scrollerMinX;
-                    }
-                    if (newScrollerPosition > self._slider.scrollerMaxX) {
-                        newScrollerPosition = self._slider.scrollerMaxX;
-                    }
-
-                    var newStartPage = Math.floor(newScrollerPosition * self._slider.scrollCoeff / self._linkWidthFull);
-
-                    if (cfg.order === 'forward') {
-                        self._startPage = newStartPage + 1;
-                    }
-                    else if (cfg.order === 'reverse') {
-                        self._startPage = cfg.totalPages - newStartPage;
-                    }
-                    self._renderPages();
-
-                    self._slider.scroller.css('left', newScrollerPosition + 'px');
+                    self._clickScroll(event);
                 }
             },
 
@@ -364,6 +353,28 @@
             _stopDragSlider: function(event) {
                 self._slider.drag = false;
             },
+
+            _clickScroll: function(event) {
+                var newScrollerPosition = event.pageX - self._slider.scroller.width() / 2 - self._slider.scrollerOffset;
+                if (newScrollerPosition < self._slider.scrollerMinX) {
+                    newScrollerPosition = self._slider.scrollerMinX;
+                }
+                if (newScrollerPosition > self._slider.scrollerMaxX) {
+                    newScrollerPosition = self._slider.scrollerMaxX;
+                }
+
+                var newStartPage = Math.floor(newScrollerPosition * self._slider.scrollCoeff / self._linkWidthFull);
+
+                if (cfg.order === 'forward') {
+                    self._startPage = newStartPage + 1;
+                }
+                else if (cfg.order === 'reverse') {
+                    self._startPage = cfg.totalPages - newStartPage;
+                }
+                self._renderPages();
+
+                self._slider.scroller.css('left', newScrollerPosition + 'px');
+            }, 
 
             _wheelScroll: function(event) {
                 self._startPage +=  event.deltaY*self._direction*-1;
@@ -431,6 +442,7 @@
                 self._checkPagesInterval();
 
                 self._scrollerToPage();
+                self._scrollerFlagToPage(cfg.currentPage);
                 self._renderPages();
             },
 
@@ -447,6 +459,19 @@
                     
                     var newScrollerPosition = page * self._linkWidthFull / self._slider.scrollCoeff;
                     self._slider.scroller.css({left: newScrollerPosition});
+                }
+            },
+
+            _scrollerFlagToPage: function(page) {
+                if (cfg.showSlider) {
+                    if (cfg.order === 'forward') {
+                        var newPosition = (page - 1) * self._slider.scrollFlagCoeff;
+                    }
+                    else if (cfg.order === 'reverse') {
+                        var newPosition = (cfg.totalPages - page) * self._slider.scrollFlagCoeff;
+                    }
+                    
+                    self._slider.flag.css({left: newPosition});
                 }
             }
         };
