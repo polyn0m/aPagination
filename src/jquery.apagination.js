@@ -64,6 +64,12 @@
             */
             totalPages: 10,
             /**
+            * Scroll by number of pages
+            *
+            * Can be set by percentage - '2%'
+            */
+            scrollBy: 1,
+            /**
             * Pages order
             */
             order: 'forward',
@@ -84,27 +90,27 @@
              */
             showDots: false,
             /**
-             * 
+             * On 'More' click callback 
              */
             onMore: null,
             /**
-             * 
+             * On 'Next' click callback
              */
             onNext: null,
             /**
-             * 
+             * On 'Prev' callback
              */
             onPrev: null,
             /**
-             * 
+             * On same page click callbacl
              */
             onLink: null,
             /**
-             * 
+             * Before load data callback
              */
             beforeLoadData: null,
             /**
-             * 
+             * After load data callback
              */
             afterLoadData: null,
         };
@@ -132,6 +138,10 @@
                 if (!cfg.showNextPrevButtons) {
                     $('.' + cfg.cssPrefix + '-next-link, .' + cfg.cssPrefix + '-prev-link').remove();
                     self._pagesContainer.css({'margin-left': 0, 'margin-right': 0});
+                }
+
+                if (cfg.showDots) {
+                    self._paginationContainer.addClass(cfg.cssPrefix + '-show-dots');
                 }
 
                 if (cfg.linksCount === 'max') {
@@ -212,11 +222,11 @@
                     $(document).on("mousedown", '.' + cfg.cssPrefix + '-slider-trigger', self._startDragSlider);
                     $(document).on("mouseup", self._stopDragSlider);
 
-                    $(document).on("click", '.' + cfg.cssPrefix + '-slider-scroll', self._clickScroll);
+                    $(document).on("click", '.' + cfg.cssPrefix + '-slider-container, .' + cfg.cssPrefix + '-slider-flag', self._clickScroll);
                 }
 
                 if ($.fn.mousewheel) {
-                    $(self._pagesContainer).mousewheel(self._wheelScroll);
+                    self._paginationContainer.find('.' + cfg.cssPrefix + '-pages-container').mousewheel(self._wheelScroll);
                 }
 
                 self._scrollToPage(cfg.currentPage);
@@ -249,7 +259,40 @@
                     var sP = self._startPage;
                     if (cfg.showDots) {
                         sP = self._startPage + self._direction;
+
+                        if (cfg.order == 'forward') {
+                            if (self._startPage != 1) {
+                                self._paginationContainer.addClass('show-first-dots');
+                            }
+                            else {
+                                self._paginationContainer.removeClass('show-first-dots');
+                            }
+
+                            if (self._startPage != cfg.totalPages - cfg.linksCount - 1) {
+                                self._paginationContainer.addClass('show-last-dots');
+                            }
+                            else {
+                                self._paginationContainer.removeClass('show-last-dots');
+                            }
+                        }
+                        else if (cfg.order == 'reverse') {
+                            if (self._startPage != cfg.totalPages) {
+                                self._paginationContainer.addClass('show-first-dots');
+                            }
+                            else {
+                                self._paginationContainer.removeClass('show-first-dots');
+                            }
+
+                            if (self._startPage != cfg.linksCount + 2) {
+                                self._paginationContainer.addClass('show-last-dots');
+                            }
+                            else {
+                                self._paginationContainer.removeClass('show-last-dots');
+                            }
+                        }
                     }
+
+
 
                     for (var i = 0; i < cfg.linksCount; i++) {
                         var p = sP + i*self._direction;

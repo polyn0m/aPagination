@@ -47,6 +47,34 @@
 	top: 0;
 }
 
+.apg-show-dots.show-first-dots .apg-first-link:after {
+	position: absolute;
+	content: '···';
+	padding: 6px 0px;
+
+	right: -10px;
+	top: 0;
+
+	width: 20px;
+
+	color: #428bca;
+	background: #fff;
+}
+
+.apg-show-dots.show-last-dots .apg-last-link:before {
+	position: absolute;
+	content: '···';
+	padding: 6px 0px;
+
+	left: -10px;
+	top: 0;
+
+	width: 20px;
+
+	color: #428bca;
+	background: #fff;
+}
+
 .apg-pages-container .apg-pages {
 	overflow: hidden;
 	margin: 0px 38px;
@@ -83,6 +111,7 @@
 	height: 18px;
 
 	margin: 0px 38px;
+	cursor: pointer;
 }
 
 .apg-slider-container .apg-slider-scroll {
