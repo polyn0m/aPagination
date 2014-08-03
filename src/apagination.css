@@ -80,7 +80,7 @@
 	margin: 0px 38px;
 }
 
-.apg-pages-container .apg-pages-links a, .apg-pages-container .apg-pages-links span {
+.apg-pages-container .apg-pages-links .apg-link {
 	display: block;
 	float: left;
 	
@@ -88,22 +88,19 @@
 	background-color: #fff;
 
 	text-align: center;
+
+	cursor: pointer;
 }
 
-.apg-pages-container .apg-pages-links a:hover {
+.apg-pages-container .apg-pages-links .apg-link:hover {
 	background: #F4F4F2;
 	color: #333;
 }
 
-.apg-pages-container .apg-pages-links span.active {
+.apg-pages-container .apg-pages-links .apg-link.active {
 	color: #fff;
 	background: #428bca;
 	cursor: default;
-}
-
-.apg-pages-container .apg-pages-links .apg-link.active {
-	background: #428bca;
-	color: #fff;
 }
 
 .apg-slider-container {

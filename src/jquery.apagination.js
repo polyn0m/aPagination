@@ -34,10 +34,6 @@
              */
             moreLinkTemplate: '<a href="#more" class="{cssPrefix}-more-link">More ↓</a>',
             /**
-             * link template
-             */
-            linkTemplate: '<a href="#{page}" class="{cssPrefix}-link">{page}</a>',
-            /**
              * Container wich contain result
              */
             resultContainer: '',
@@ -49,6 +45,10 @@
              * Method for load data
              */
             loadMethod: 'GET',
+            /**
+             * Page param name
+             */
+            pageParamName: 'p',
             /**
              * Count of links in paginator
              * 
@@ -123,16 +123,16 @@
         cfg.linkSelector = cfg.linkSelector.replace("{cssPrefix}", cfg.cssPrefix);
 
         cfg.moreLinkTemplate = cfg.moreLinkTemplate.replace("{cssPrefix}", cfg.cssPrefix);
-        cfg.linkTemplate = cfg.linkTemplate.replace("{cssPrefix}", cfg.cssPrefix);
 
         var self = {
+            _linkTemplate: '<span class="{cssPrefix}-link">{page}</span>'.replace("{cssPrefix}", cfg.cssPrefix),
             _init: function(el) {
                 self._paginationContainer = $(el);
 
                 self._pagesContainer = self._paginationContainer.find('.' + cfg.cssPrefix + '-pages');
 
                 self._pagesContainer.empty();
-                var link = cfg.linkTemplate.replace(/{page}/g, cfg.totalPages);
+                var link = self._linkTemplate.replace(/{page}/g, cfg.totalPages);
                 self._pagesContainer.append(link);
 
                 if (!cfg.showNextPrevButtons) {
@@ -187,8 +187,8 @@
                 if (cfg.showSlider) {
                     self._paginationContainer.find('.' + cfg.cssPrefix + '-pages-container').append(
                         ('<div class="{cssPrefix}-slider-container">' +
-                            '<span class="{cssPrefix}-slider-scroll"></span>' +
                             '<span class="{cssPrefix}-slider-scroller"><span class="{cssPrefix}-slider-trigger"></span></span>' +
+                            '<span class="{cssPrefix}-slider-scroll"></span>' +
                             '<span class="{cssPrefix}-slider-flag"></span>' +
                         '</div>').replace(/{cssPrefix}/g, cfg.cssPrefix)
                     );
@@ -219,10 +219,10 @@
                     };
 
                     $(document).on("mousemove", self._draggingSlider);
-                    $(document).on("mousedown", '.' + cfg.cssPrefix + '-slider-trigger', self._startDragSlider);
+                    $(document).on("mousedown", '.' + cfg.cssPrefix + '-slider-trigger, .' + cfg.cssPrefix + '-slider-scroller', self._startDragSlider);
                     $(document).on("mouseup", self._stopDragSlider);
 
-                    $(document).on("click", '.' + cfg.cssPrefix + '-slider-container, .' + cfg.cssPrefix + '-slider-flag', self._clickScroll);
+                    $(document).on("mousedown", '.' + cfg.cssPrefix + '-slider-container, .' + cfg.cssPrefix + '-slider-flag', self._clickScroll);
                 }
 
                 if ($.fn.mousewheel) {
@@ -232,24 +232,117 @@
                 self._scrollToPage(cfg.currentPage);
             },
 
-            _load: function(url) {
+            _load: function(page, append) {
+                if (cfg.loadUrl) {
+                    var data = { };
+                    data[cfg.pageParamName] = page;
 
+                    $.ajax({
+                        type: cfg.loadMethod,
+                        url: cfg.loadUrl,
+                        data: data,
+                        contentType: 'text/html; charset=UTF-8',
+                        beforeSend: function(jqXHR, settings) {
+                            if (cfg.beforeLoadData) {
+                                var result = cfg.beforeLoadData(data, settings);
+                            }
+                        },
+                        success: function(html) {
+                            // TODO
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.log(textStatus);
+                        }
+                    })
+                }
             },
 
-            _more: function() {
+            _more: function(event) {
+                var newPage = cfg.currentPage + 1;
+                if (newPage > cfg.totalPages) {
+                    newPage = cfg.totalPages;
+                }
+                else {
+                    var result = true;
+                    if (cfg.onNext) {
+                        result = cfg.onMore(cfg.currentPage, newPage, event);
+                    }
 
+                    if (result) {
+                        self._load(newPage, true);
+                        
+                        cfg.currentPage = newPage;
+
+                        self._scrollToPage(cfg.currentPage);
+                    }
+                }
             },
 
-            _next: function() {
-                
+            _next: function(event) {
+                var newPage = cfg.currentPage + 1;
+                if (newPage > cfg.totalPages) {
+                    newPage = cfg.totalPages;
+                }
+                else {
+                    var result = true;
+                    if (cfg.onNext) {
+                        result = cfg.onNext(cfg.currentPage, newPage, event);
+                    }
+
+                    if (result) {
+                        self._load(newPage, false);
+
+                        cfg.currentPage = newPage;
+
+                        self._scrollToPage(cfg.currentPage);
+                    }
+                }
             },
 
-            _prev: function() {
-                
+            _prev: function(event) {
+                var newPage = cfg.currentPage - 1;
+                if (newPage < 1) {
+                    newPage = 1;
+                }
+                else {
+                    var result = true;
+                    if (cfg.onPrev) {
+                        result = cfg.onPrev(cfg.currentPage, newPage, event);
+                    }
+
+                    if (result) {
+                        self._load(newPage, false);
+
+                        cfg.currentPage = newPage;
+
+                        self._scrollToPage(cfg.currentPage);
+                    }
+                }
             },
 
-            _link: function() {
-                
+            _link: function(event) {
+                var newPage = $(this).data('page');
+                if (newPage > cfg.totalPages) {
+                    newPage = cfg.totalPages;
+                }
+                if (newPage < 1) {
+                    newPage = 1;
+                }
+
+                else {
+                    var result = true;
+                    if (cfg.onNext) {
+                        result = cfg.onNext(cfg.currentPage, newPage, event);
+                    }
+
+                    if (result) {
+                        self._load(newPage, false);
+
+                        cfg.currentPage = newPage;
+
+                        self._scrollToPage(cfg.currentPage);
+                    }
+                }
             },
 
             _renderPages: function() {
@@ -292,18 +385,16 @@
                         }
                     }
 
-
-
                     for (var i = 0; i < cfg.linksCount; i++) {
                         var p = sP + i*self._direction;
-                        link = cfg.linkTemplate.replace(/{page}/g, p);
+                        link = self._linkTemplate.replace(/{page}/g, p);
 
                         if (firstRender) {
-                            self._pagesContainer.append(link);
+                            self._pagesContainer.append(link).data('page', p);
                         }
                         else {
                             self._pagesContainer.children().eq(i).replaceWith(link)
-                                .removeClass('active').text(p).attr('href', '#' + i);
+                                .removeClass('active').data('page', p);
                         }
 
                         if (p == cfg.currentPage) {
@@ -333,13 +424,11 @@
                             .css({'margin-left': margin, 'margin-right': margin});
                     }
 
-
-
                     if (cfg.order === 'forward') {
                         self._startPage = 1;
                         
                         if (cfg.showDots) {
-                            link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
+                            link = self._linkTemplate.replace(/{page}/g, self._startPage);
                             link = $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
                             if (1 == cfg.currentPage) {
                                 $(link).addClass('active');
@@ -349,7 +438,7 @@
                         renderLine(true);
 
                         if (cfg.showDots) {
-                            link = cfg.linkTemplate.replace(/{page}/g, cfg.totalPages);
+                            link = self0._linkTemplate.replace(/{page}/g, cfg.totalPages);
                             link = $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
                             if (cfg.totalPages == cfg.currentPage) {
                                 $(link).addClass('active');
@@ -360,7 +449,7 @@
                         self._startPage = cfg.totalPages;
 
                         if (cfg.showDots) {
-                            link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
+                            link = self._linkTemplate.replace(/{page}/g, self._startPage);
                             link = $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
                             if (cfg.totalPages == cfg.currentPage) {
                                 $(link).addClass('active');
@@ -370,7 +459,7 @@
                         renderLine(true);
 
                         if (cfg.showDots) {
-                            link = cfg.linkTemplate.replace(/{page}/g, 1);
+                            link = self._linkTemplate.replace(/{page}/g, 1);
                             link = $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
 
                             if (1 == cfg.currentPage) {
