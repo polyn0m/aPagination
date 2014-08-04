@@ -264,6 +264,10 @@
                             return result;
                         },
                         success: function(html) {
+                            if (cfg.afterLoadData) {
+                                cfg.afterLoadData(html);
+                            }
+
                             if (cfg.resultContainer) {
                                 if (append) {
                                     $(cfg.resultContainer).append(html);
