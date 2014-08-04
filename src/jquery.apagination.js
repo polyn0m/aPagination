@@ -238,7 +238,7 @@
                 self._scrollToPage(cfg.currentPage);
 
                 if (!cfg.loadUrl) {
-                    console.log('aPagination: Data URl not set, data will not be loaded!');
+                    console.log('aPagination: Data URL not set, data will not be loaded!');
                 }
                 else if (!cfg.resultContainer) {
                     console.log('aPagination: Result container not set, data will not be displayed!');
@@ -371,7 +371,6 @@
                         self._load(newPage, false);
 
                         cfg.currentPage = newPage;
-
                         self._scrollToPage(cfg.currentPage);
                     }
                 }
@@ -545,6 +544,8 @@
                 if (newScrollerPosition > self._slider.scrollerMaxX) {
                     newScrollerPosition = self._slider.scrollerMaxX;
                 }
+
+                self._slider.drag = true;
 
                 var newStartPage = Math.floor(newScrollerPosition * self._slider.scrollCoeff / self._linkWidthFull);
 
