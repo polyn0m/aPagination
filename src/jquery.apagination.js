@@ -382,7 +382,11 @@
                 
                 var renderLine = function(firstRender) {
                     var sP = self._startPage;
+
+                    $('.' + cfg.cssPrefix + '-link').removeClass('active');
+
                     if (cfg.showDots) {
+                        var fClass, lClass;
                         sP = self._startPage + self._direction;
 
                         if (cfg.order == 'forward') {
@@ -399,6 +403,8 @@
                             else {
                                 self._paginationContainer.removeClass('show-last-dots');
                             }
+
+                            fClass = 'first', lClass = 'last';
                         }
                         else if (cfg.order == 'reverse') {
                             if (self._startPage != cfg.totalPages) {
@@ -414,6 +420,15 @@
                             else {
                                 self._paginationContainer.removeClass('show-last-dots');
                             }
+
+                            fClass = 'last', lClass = 'first';
+                        }
+
+                        if (1 == cfg.currentPage) {
+                            $('.' + cfg.cssPrefix + '-' + fClass + '-link').addClass('active');
+                        }
+                        if (cfg.totalPages == cfg.currentPage) {
+                            $('.' + cfg.cssPrefix + '-' + lClass + '-link').addClass('active');
                         }
                     }
 
@@ -427,8 +442,7 @@
                             self._pagesContainer.append(link);
                         }
                         else {
-                            self._pagesContainer.children().eq(i).replaceWith(link)
-                                .removeClass('active');
+                            self._pagesContainer.children().eq(i).replaceWith(link);
                         }
 
                         if (p == cfg.currentPage) {
