@@ -530,10 +530,14 @@
 
             _startDragSlider: function(event) {
                 self._slider.drag = true;
+                
+                event.preventDefault ? event.preventDefault() : event.returnValue = false;
             },
 
             _stopDragSlider: function(event) {
                 self._slider.drag = false;
+                
+                event.preventDefault ? event.preventDefault() : event.returnValue = false
             },
 
             _clickScroll: function(event) {
