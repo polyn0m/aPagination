@@ -218,7 +218,7 @@
                         scroller: scroller,
                         flag: flag,
                         scrollCoeff: (renderPages * self._linkWidthFull - self._pagesContainer.width()) / (self._sliderContainer.width() - scroller.width()),
-                        scrollFlagCoeff: self._sliderContainer.width() / renderPages,
+                        scrollFlagCoeff: self._sliderContainer.width() / cfg.totalPages,
                         scrollerOffset: self._sliderContainer.offset().left,
                         scrollerMinX: 0,
                         scrollerMaxX: self._sliderContainer.width() - scroller.width()
@@ -306,9 +306,12 @@
             },
 
             _next: function(event) {
-                var newPage = cfg.currentPage + 1;
+                var newPage = cfg.currentPage + self._direction;
                 if (newPage > cfg.totalPages) {
                     newPage = cfg.totalPages;
+                }
+                else if (newPage < 1) {
+                    newPage = 1;
                 }
                 else {
                     var result = true;
@@ -327,9 +330,12 @@
             },
 
             _prev: function(event) {
-                var newPage = cfg.currentPage - 1;
+                var newPage = cfg.currentPage - self._direction;
                 if (newPage < 1) {
                     newPage = 1;
+                }
+                else if (newPage > cfg.totalPages) {
+                    newPage = cfg.totalPages;
                 }
                 else {
                     var result = true;
@@ -352,10 +358,9 @@
                 if (newPage > cfg.totalPages) {
                     newPage = cfg.totalPages;
                 }
-                if (newPage < 1) {
+                else if (newPage < 1) {
                     newPage = 1;
                 }
-
                 else {
                     var result = true;
                     if (cfg.onNext) {
@@ -414,14 +419,16 @@
 
                     for (var i = 0; i < cfg.linksCount; i++) {
                         var p = sP + i*self._direction;
-                        link = self._linkTemplate.replace(/{page}/g, p);
+                        link = $(self._linkTemplate.replace(/{page}/g, p));
+
+                        link = link.data('page', p);
 
                         if (firstRender) {
-                            self._pagesContainer.append(link).data('page', p);
+                            self._pagesContainer.append(link);
                         }
                         else {
                             self._pagesContainer.children().eq(i).replaceWith(link)
-                                .removeClass('active').data('page', p);
+                                .removeClass('active');
                         }
 
                         if (p == cfg.currentPage) {
@@ -456,7 +463,8 @@
                         
                         if (cfg.showDots) {
                             link = self._linkTemplate.replace(/{page}/g, self._startPage);
-                            link = $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            link = $(link).data('page', 1).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            
                             if (1 == cfg.currentPage) {
                                 $(link).addClass('active');
                             }
@@ -465,8 +473,9 @@
                         renderLine(true);
 
                         if (cfg.showDots) {
-                            link = self0._linkTemplate.replace(/{page}/g, cfg.totalPages);
-                            link = $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                            link = self._linkTemplate.replace(/{page}/g, cfg.totalPages);
+                            link = $(link).data('page', cfg.totalPages).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                            
                             if (cfg.totalPages == cfg.currentPage) {
                                 $(link).addClass('active');
                             }
@@ -477,7 +486,8 @@
 
                         if (cfg.showDots) {
                             link = self._linkTemplate.replace(/{page}/g, self._startPage);
-                            link = $(link).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            link = $(link).data('page', self._startPage).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            
                             if (cfg.totalPages == cfg.currentPage) {
                                 $(link).addClass('active');
                             }
@@ -487,7 +497,7 @@
 
                         if (cfg.showDots) {
                             link = self._linkTemplate.replace(/{page}/g, 1);
-                            link = $(link).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                            link = $(link).data('page', 1).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
 
                             if (1 == cfg.currentPage) {
                                 $(link).addClass('active');
