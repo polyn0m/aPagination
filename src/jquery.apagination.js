@@ -153,6 +153,12 @@
                     cfg.showSlider = false;
                 }
 
+                if (typeof cfg.scrollBy == 'string' && cfg.scrollBy.slice(-1) == '%') {
+                    var pValue = cfg.scrollBy.slice(0, -1);
+
+                    cfg.scrollBy = Math.ceil(cfg.totalPages / 100 * pValue);
+                }
+
                 if (cfg.order === 'forward') {
                     self._direction = 1;        
                 }
@@ -230,6 +236,13 @@
                 }
 
                 self._scrollToPage(cfg.currentPage);
+
+                if (!cfg.loadUrl) {
+                    console.log('aPagination: Data URl not set, data will not be loaded!');
+                }
+                else if (!cfg.resultContainer) {
+                    console.log('aPagination: Result container not set, data will not be displayed!');
+                }
             },
 
             _load: function(page, append) {
@@ -243,15 +256,25 @@
                         data: data,
                         contentType: 'text/html; charset=UTF-8',
                         beforeSend: function(jqXHR, settings) {
+                            var result = true;
                             if (cfg.beforeLoadData) {
-                                var result = cfg.beforeLoadData(data, settings);
+                                result = cfg.beforeLoadData(data, settings);
                             }
+
+                            return result;
                         },
                         success: function(html) {
-                            // TODO
+                            if (cfg.resultContainer) {
+                                if (append) {
+                                    $(cfg.resultContainer).append(html);
+                                }
+                                else {
+                                    $(cfg.resultContainer).html(html);
+                                }
+                            }
                         },
                         error: function(jqXHR, textStatus, errorThrown) {
-                            console.log(textStatus);
+                            console.log('aPagination: ' + textStatus);
                         }
                     })
                 }
@@ -509,7 +532,7 @@
             }, 
 
             _wheelScroll: function(event) {
-                self._startPage +=  event.deltaY*self._direction*-1;
+                self._startPage +=  event.deltaY*cfg.scrollBy*self._direction*-1;
 
                 self._checkPagesInterval();
 
