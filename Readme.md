@@ -54,11 +54,11 @@ Options
 *Default:* `'<a href="#more" class="{cssPrefix}-more-link">More ↓</a>'`
 
 **resultContainer** - Container wich contain result  
-*Default:* `''`
+*Default:* `''`  
 *Note: MUST set if you using AJAX load*
 
 **loadUrl** - URL for load data  
-*Default:* `''`
+*Default:* `''`  
 *Note: MUST set if you using AJAX load*
 
 **loadMethod** - Method for load data  
@@ -79,7 +79,7 @@ Options
 
 **scrollBy** - Scroll by number of pages  
 *Default:* `1`  
-*Can be set by percentage - '2%'*
+*Note: Can be set by percentage - '2%'*
 
 **order** - Pages order  
 *Default:* `'forward'`
