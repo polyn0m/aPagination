@@ -1,5 +1,7 @@
 <html>
     <head>
+        <meta charset="utf-8">
+
         <title>aPagination - simple and powerful jQuery pagination plugin</title>
 
         <link rel="stylesheet" type="text/css" href="style.css">
@@ -15,11 +17,11 @@
                 $('#paginator').aPagination({
                     showMoreButton: true,
                     showSlider: true,
-                    showDots: true,
-                    showNextPrevButtons: false,
+                    showDots: false,
+                    showNextPrevButtons: true,
                     totalPages: 25,
-                    currentPage: 12,
-                    order: 'reverse',
+                    currentPage: 25,
+                    order: 'forward',
                     linksCount: 8,
                     resultContainer: '#result'
                 });
