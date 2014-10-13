@@ -109,6 +109,10 @@
              */
             showDots: false,
             /**
+             * Allow auto resize paginator
+             */
+            allowResize: false,
+            /**
              * On 'More' click callback 
              */
             onMore: null,
@@ -155,13 +159,13 @@
 
                 self._pagesContainer.css({'margin-left': 0, 'margin-right': 0});
                 if (!cfg.showNextPrevButtons) {
-                    $(cfg.prevLinkSelector + ', ' + cfg.nextLinkSelector).remove();
+                    self._paginationContainer.find(cfg.prevLinkSelector + ', ' + cfg.nextLinkSelector).remove();
 
                     self._pnLinksWidth = 0;
                 }
                 else {
-                    var nextLink = $(cfg.nextLinkSelector);
-                    var prevLink = $(cfg.prevLinkSelector);
+                    var nextLink = self._paginationContainer.find(cfg.nextLinkSelector);
+                    var prevLink = self._paginationContainer.find(cfg.prevLinkSelector);
 
                     self._nextLinkContent = nextLink.html();
                     self._prevLinkContent = prevLink.html();
@@ -171,15 +175,6 @@
 
                 if (cfg.showDots) {
                     self._paginationContainer.addClass(cfg.cssPrefix + '-show-dots');
-                }
-
-                if (cfg.linksCount === 'max') {
-                    cfg.linksCount = Math.ceil(self._pagesWidth / $(cfg.linkSelector).innerWidth());
-                }
-
-                if (cfg.totalPages <= cfg.linksCount) {
-                    cfg.linksCount = cfg.totalPages;
-                    cfg.showSlider = false;
                 }
 
                 if (typeof cfg.scrollBy === 'string' && cfg.scrollBy.slice(-1) === '%') {
@@ -195,12 +190,24 @@
                     self._direction = -1;
                 }
 
-                self._linkPadding = $(cfg.linkSelector).innerWidth() - $(cfg.linkSelector).width();
+                self._linkPadding = self._paginationContainer.find(cfg.linkSelector).innerWidth() - self._paginationContainer.find(cfg.linkSelector).width();
                 self._pagesWidth = self._pagesContainer.width() - 2*self._pnLinksWidth;
-                self._linkWidth = Math.floor(self._pagesWidth / cfg.linksCount - self._linkPadding);
+
+                self._linksCount = cfg.linksCount;
+                if (cfg.linksCount === 'max') {
+                    self._linksCount = Math.ceil(self._pagesWidth / self._paginationContainer.find(cfg.linkSelector).innerWidth());
+                }
+
+                self._showSlider = cfg.showSlider;
+                if (cfg.totalPages <= self._linksCount) {
+                    self._linksCount = cfg.totalPages;
+                    self._showSlider = false;
+                }
+
+                self._linkWidth = self._pagesWidth / self._linksCount - self._linkPadding;
                 self._linkWidthFull = self._linkWidth + self._linkPadding;
 
-                self.displayedLinksCount = cfg.linksCount;
+                self.displayedLinksCount = self._linksCount;
                 if (cfg.showDots) {
                     self.displayedLinksCount -= 2;
                 }
@@ -208,48 +215,23 @@
                 self._pagesContainer.empty();
                 self._renderPages();
 
-                $(document).on('click',  cfg.linkSelector, self._link);
+                if (cfg.allowResize) {
+                    $(window).on('resize', $.proxy(self._resize, this));
+                }
+
+                self._paginationContainer.on('click', cfg.linkSelector, $.proxy(self._link, this));
 
                 if (cfg.showNextPrevButtons) {
-                    $(document).on('click', cfg.nextLinkSelector, self._next);
-                    $(document).on('click', cfg.prevLinkSelector, self._prev);
+                    self._paginationContainer.on('click', cfg.nextLinkSelector, $.proxy(self._next, this));
+                    self._paginationContainer.on('click', cfg.prevLinkSelector, $.proxy(self._prev, this));
                 }
 
                 if (cfg.showMoreButton) {
-                    $(document).on('click', cfg.moreLinkSelector, self._more);
+                    self._paginationContainer.on('click', cfg.moreLinkSelector, $.proxy(self._more, this));
                 }
 
-                if (cfg.showSlider) {
-                    self._paginationContainer.find('.' + cfg.cssPrefix + '-pages-container').append(
-                        ('<div class="{cssPrefix}-slider-container">' +
-                            '<span class="{cssPrefix}-slider-scroller"><span class="{cssPrefix}-slider-trigger"></span></span>' +
-                            '<span class="{cssPrefix}-slider-scroll"></span>' +
-                            '<span class="{cssPrefix}-slider-flag"></span>' +
-                        '</div>').replace(/{cssPrefix}/g, cfg.cssPrefix)
-                    );
-
-                    self._sliderContainer = self._paginationContainer.find('.' + cfg.cssPrefix + '-slider-container');
-                    self._sliderContainer.css({'margin-left': self._pnLinksWidth + 'px', 'margin-right': self._pnLinksWidth + 'px'});
-
-                    var scroller = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-scroller');
-                    var flag = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-flag');
-
-                    self._slider = {
-                        drag: false,
-                        scroller: scroller,
-                        flag: flag,
-                        scrollCoeff: (cfg.totalPages * self._linkWidthFull - self._pagesWidth) / (self._sliderContainer.width() - scroller.width()),
-                        scrollFlagCoeff: self._sliderContainer.width() / cfg.totalPages,
-                        scrollerOffset: self._sliderContainer.offset().left,
-                        scrollerMinX: 0,
-                        scrollerMaxX: self._sliderContainer.width() - scroller.width()
-                    };
-
-                    $(document).on("mousemove", self._draggingSlider);
-                    $(document).on("mousedown", '.' + cfg.cssPrefix + '-slider-trigger, .' + cfg.cssPrefix + '-slider-scroller', self._startDragSlider);
-                    $(document).on("mouseup", self._stopDragSlider);
-
-                    $(document).on("mousedown", '.' + cfg.cssPrefix + '-slider-container, .' + cfg.cssPrefix + '-slider-flag', self._clickScroll);
+                if (self._showSlider) {
+                    self._initSlider();
                 }
 
                 if ($.fn.mousewheel) {
@@ -264,6 +246,97 @@
                 else if (!cfg.resultContainer) {
                     console.log('aPagination: Result container not set, data will not be displayed!');
                 }
+            },
+
+            _initSlider: function() {
+                self._paginationContainer.find('.' + cfg.cssPrefix + '-pages-container').append(
+                    ('<div class="{cssPrefix}-slider-container">' +
+                        '<span class="{cssPrefix}-slider-scroller"><span class="{cssPrefix}-slider-trigger"></span></span>' +
+                        '<span class="{cssPrefix}-slider-scroll"></span>' +
+                        '<span class="{cssPrefix}-slider-flag"></span>' +
+                    '</div>').replace(/{cssPrefix}/g, cfg.cssPrefix)
+                );
+
+                self._sliderContainer = self._paginationContainer.find('.' + cfg.cssPrefix + '-slider-container');
+                self._sliderContainer.css({'margin-left': self._pnLinksWidth + 'px', 'margin-right': self._pnLinksWidth + 'px'});
+
+                var scroller = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-scroller');
+                var flag = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-flag');
+
+                self._slider = {
+                    drag: false,
+                    scroller: scroller,
+                    flag: flag,
+                    scrollCoeff: (cfg.totalPages * self._linkWidthFull - self._pagesWidth) / (self._sliderContainer.width() - scroller.width()),
+                    scrollFlagCoeff: self._sliderContainer.width() / cfg.totalPages,
+                    scrollerOffset: self._sliderContainer.offset().left,
+                    scrollerMinX: 0,
+                    scrollerMaxX: self._sliderContainer.width() - scroller.width()
+                };
+
+                $(document).on("mousemove", $.proxy(self._draggingSlider, this));
+                $(document).on("mouseup", $.proxy(self._stopDragSlider, this));
+
+                self._paginationContainer.on("mousedown", '.' + cfg.cssPrefix + '-slider-trigger, .' + cfg.cssPrefix + '-slider-scroller', $.proxy(self._startDragSlider, this));
+                self._paginationContainer.on("mousedown", '.' + cfg.cssPrefix + '-slider-container, .' + cfg.cssPrefix + '-slider-flag', $.proxy(self._clickScroll, this));
+            },
+
+            _destroySlider: function() {
+                self._sliderContainer.remove();
+
+                self._slider = null;
+            },
+
+            _resize: function() {
+                self._paginationContainer.find('.' + cfg.cssPrefix + '-link').remove();
+
+                var url = cfg.urlTemplate.replace(/{page}/g, cfg.totalPages)
+                var link = '<a href="' + url + '" class="' + cfg.linkSelector.slice(1) + '">' + cfg.totalPages + '</a>';
+                self._pagesContainer.append(link);
+
+                self._pagesContainer.css({'margin-left': 0, 'margin-right': 0});
+
+                self._linkPadding = self._paginationContainer.find(cfg.linkSelector).innerWidth() - self._paginationContainer.find(cfg.linkSelector).width();
+                self._pagesWidth = self._pagesContainer.width() - 2*self._pnLinksWidth;
+
+                self._linksCount = cfg.linksCount;
+                if (cfg.linksCount === 'max') {
+                    self._linksCount = Math.ceil(self._pagesWidth / self._paginationContainer.find(cfg.linkSelector).innerWidth());
+                }
+
+                self._showSlider = cfg.showSlider;
+                if (cfg.totalPages <= self._linksCount) {
+                    self._linksCount = cfg.totalPages;
+                    self._showSlider = false;
+                }
+
+                self._linkWidth = self._pagesWidth / self._linksCount - self._linkPadding;
+                self._linkWidthFull = self._linkWidth + self._linkPadding;
+
+                self.displayedLinksCount = self._linksCount;
+                if (cfg.showDots) {
+                    self.displayedLinksCount -= 2;
+                }
+
+                if (self._showSlider) {
+                    if (!self._slider) {
+                        self._initSlider();
+                    }
+                    else {
+                        self._slider.scrollCoeff = (cfg.totalPages * self._linkWidthFull - self._pagesWidth) / (self._sliderContainer.width() - self._slider.scroller.width());
+                        self._slider.scrollFlagCoeff = self._sliderContainer.width() / cfg.totalPages;
+                        self._slider.scrollerOffset = self._sliderContainer.offset().left;
+                        self._slider.scrollerMaxX = self._sliderContainer.width() - self._slider.scroller.width();
+                    }
+                }
+                else if (self._slider) {
+                    self._destroySlider();
+                }
+
+                self._paginationContainer.find('.' + cfg.cssPrefix + '-link').remove();
+                self._renderPages();
+
+                self._scrollToPage(cfg.currentPage);
             },
 
             _load: function(page, append) {
@@ -291,10 +364,10 @@
 
                             if (cfg.resultContainer) {
                                 if (append) {
-                                    $(cfg.resultContainer).append(html);
+                                    self._paginationContainer.find(cfg.resultContainer).append(html);
                                 }
                                 else {
-                                    $(cfg.resultContainer).html(html);
+                                    self._paginationContainer.find(cfg.resultContainer).html(html);
                                 }
                             }
 
@@ -398,7 +471,7 @@
                 var renderLine = function(firstRender) {
                     var sP = self._startPage;
 
-                    $('.' + cfg.cssPrefix + '-link').removeClass('active');
+                    self._paginationContainer.find('.' + cfg.cssPrefix + '-link').removeClass('active');
 
                     if (cfg.showDots) {
                         var fClass, lClass;
@@ -440,10 +513,10 @@
                         }
 
                         if (1 == cfg.currentPage) {
-                            $('.' + cfg.cssPrefix + '-' + fClass + '-link').addClass('active');
+                            self._paginationContainer.find('.' + cfg.cssPrefix + '-' + fClass + '-link').addClass('active');
                         }
                         if (cfg.totalPages == cfg.currentPage) {
-                            $('.' + cfg.cssPrefix + '-' + lClass + '-link').addClass('active');
+                            self._paginationContainer.find('.' + cfg.cssPrefix + '-' + lClass + '-link').addClass('active');
                         }
                     }
 
@@ -468,7 +541,7 @@
                             link.addClass('disable');
                         }
 
-                        $(cfg.prevLinkSelector).replaceWith(link);
+                        self._paginationContainer.find(cfg.prevLinkSelector).replaceWith(link);
 
                         disable = false;
 
@@ -489,7 +562,7 @@
                             link.addClass('disable');
                         }
 
-                        $('.' + cfg.cssPrefix + '-next-link').replaceWith(link);
+                        self._paginationContainer.find(cfg.nextLinkSelector).replaceWith(link);
                     }
 
                     for (var i = 0; i < self.displayedLinksCount; i++) {
@@ -578,23 +651,27 @@
                     }
                 }
                 
-                $(cfg.linkSelector).width(self._linkWidth);
+                self._paginationContainer.find(cfg.linkSelector).width(self._linkWidth);
             },
 
             _draggingSlider: function(event) {
-                if (self._slider.drag) {
+                if (self._showSlider && self._slider.drag) {
                     self._clickScroll(event);
                 }
             },
 
             _startDragSlider: function(event) {
-                self._slider.drag = true;
+                if (self._showSlider) {
+                    self._slider.drag = true;
+                }
                 
                 event.preventDefault ? event.preventDefault() : event.returnValue = false;
             },
 
             _stopDragSlider: function(event) {
-                self._slider.drag = false;
+                if (self._showSlider) {
+                    self._slider.drag = false;
+                }
                 
                 event.preventDefault ? event.preventDefault() : event.returnValue = false
             },
@@ -628,12 +705,14 @@
             }, 
 
             _wheelScroll: function(event) {
-                self._startPage +=  event.deltaY*cfg.scrollBy*self._direction*-1;
+                if (cfg.totalPages > self._linksCount) {
+                    self._startPage +=  event.deltaY*cfg.scrollBy*self._direction*-1;
 
-                self._checkPagesInterval();
+                    self._checkPagesInterval();
 
-                self._scrollerToPage();
-                self._renderPages();
+                    self._scrollerToPage();
+                    self._renderPages();
+                }
             }, 
 
             _checkPagesInterval: function() {
@@ -698,7 +777,7 @@
             },
 
             _scrollerToPage: function(page) {
-                if (cfg.showSlider) {
+                if (self._showSlider) {
                     if (typeof page === 'undefined') {
                         if (cfg.order === 'forward') {
                             page = self._startPage - 1;
@@ -714,7 +793,7 @@
             },
 
             _scrollerFlagToPage: function(page) {
-                if (cfg.showSlider) {
+                if (self._showSlider) {
                     if (cfg.order === 'forward') {
                         var newPosition = (page - 1) * self._slider.scrollFlagCoeff;
                     }

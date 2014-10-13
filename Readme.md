@@ -2,11 +2,13 @@ What's that
 ===============
 aPagination is a flexible and simple pagination jQuery plugin with some features
 * Full CSS styling
+* Adaptive resize
+* Multiple paginators on page
 * Simple HTML markup (generate only displayed pages)
 * Flexible (forward/reverse order, 'More' button, slider, prev/next buttons and others options)
 * AJAX data load
 
-License - GPLv3, Current version - 0.4.0
+License - GPLv3, Current version - 0.5.0
 
 Road Map
 ===============
@@ -86,6 +88,9 @@ Options
 
 **showMore** - ButtonShow 'More' button  
 *Default:* `true`
+
+**allowResize** - Allow auto resize paginator, useful for adaptive sites  
+*Default:* `false`
 
 **showNextPrevButtons** - Show next/previous button  
 *Default:* `true`
