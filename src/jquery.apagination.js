@@ -399,6 +399,8 @@
                     if (result) {
                         self._load(newPage, true);
                     }
+
+                    return result;
                 }
 
                 return false;
@@ -712,6 +714,8 @@
 
                     self._scrollerToPage();
                     self._renderPages();
+
+                    event.preventDefault ? event.preventDefault() : event.returnValue = false;
                 }
             }, 
 

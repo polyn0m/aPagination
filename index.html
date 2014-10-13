@@ -14,99 +14,196 @@
 
         <script>
             $(document).ready(function() {
-                $('#paginator').aPagination({
-                    showMoreButton: true,
-                    showSlider: true,
-                    showDots: true,
-                    showNextPrevButtons: true,
-                    totalPages: 25,
-                    currentPage: 25,
-                    order: 'reverse',
-                    linksCount: 8,
-                    resultContainer: '#result'
+                $('#paginator-simple').aPagination({
+                    totalPages: 20,
+                    currentPage: 4
                 });
 
-                $('#paginator2').aPagination({
+                $('#paginator-options').aPagination({
                     showMoreButton: true,
-                    showSlider: true,
-                    showDots: true,
-                    showNextPrevButtons: true,
-                    totalPages: 24,
-                    currentPage: 2,
-                    order: 'forward',
+                    showNextPrevButtons: false,
+                    totalPages: 123,
+                    currentPage: 24,
+                    order: 'reverse',
                     linksCount: 'max',
-                    resultContainer: '#result2'
+                    scrollBy: '4%',
+                    onMore: function(currentPage, newPage, event) {
+                        alert('On More Callback!');
+
+                        return true;
+                    }
+                });
+
+                $('#paginator-adaptive').aPagination({
+                    showMoreButton: true,
+                    totalPages: 40,
+                    currentPage: 4,
+                    linksCount: 5,
+                    allowResize: true
                 });
             });
         </script>
     </head>
     <body>
         <div class="wrapper">
-            <div id="result" class="result">
-            </div>
-
-            <div id="paginator" class="apg-container">
-                <div class="apg-more-container"><a href="#more" class="apg-more-link">More ↓</a></div>
-                <div class="apg-pages-container">
-                    <div class="apg-pages-links">
-                        <a href="#prev" class="apg-prev-link">←</a>
-                        <div class="apg-pages">
-                            <a href="#1" class="apg-link">1</a>
-                            <a href="#2" class="apg-link">2</a>
-                            <a href="#3" class="apg-link active">3</span>
-                            <a href="#4" class="apg-link">4</a>
-                            <a href="#5" class="apg-link">5</a>
-                            <a href="#6" class="apg-link">6</a>
-                            <a href="#7" class="apg-link">7</a>
-                            <a href="#8" class="apg-link">8</a>
-                            <a href="#9" class="apg-link">9</a>
-                            <a href="#10" class="apg-link">10</a>
-                            <a href="#11" class="apg-link">11</a>
-                            <a href="#12" class="apg-link">12</a>
-                            <a href="#13" class="apg-link">13</a>
-                            <a href="#14" class="apg-link">14</a>
-                            <a href="#15" class="apg-link">15</a>
-                            <a href="#16" class="apg-link">16</a>
-                            <a href="#17" class="apg-link">17</a>
-                            <a href="#18" class="apg-link">18</a>
-                            <a href="#19" class="apg-link">19</a>
-                            <a href="#20" class="apg-link">20</a>
+            <h1>aPagination jQuery plugin</h1>
+            <p>
+                aPagination - simple and powerful jQuery pagination plugin
+            </p>
+            <h2>
+                What's that
+            </h2>
+            <p>
+                aPagination is a flexible and simple pagination jQuery plugin with some features
+            </p>
+            <ul>
+                <li>Full CSS styling</li>
+                <li>Adaptive resize</li>
+                <li>Multiple paginators on page</li>
+                <li>Simple HTML markup (generate only displayed pages)</li>
+                <li>Flexible (forward/reverse order, 'More' button, slider, prev/next buttons and others options)</li>
+                <li>AJAX data load</li>
+            </ul>
+            <p>
+                License - GPLv3, Current version - 0.5.0
+            </p>
+            <h2>
+                Examples
+            </h2>
+            <div id="example_1">
+                <h3>Simple usage</h3>
+                <div id="paginator-simple" class="apg-container">
+                    <div class="apg-pages-container">
+                        <div class="apg-pages-links">
+                            <a href="#prev" class="apg-prev-link">←</a>
+                            <div class="apg-pages">
+                                <a href="#1" class="apg-link">1</a>
+                                <a href="#2" class="apg-link">2</a>
+                                <a href="#3" class="apg-link active">3</span>
+                                <a href="#4" class="apg-link">4</a>
+                                <a href="#5" class="apg-link">5</a>
+                                <a href="#6" class="apg-link">6</a>
+                                <a href="#7" class="apg-link">7</a>
+                                <a href="#8" class="apg-link">8</a>
+                                <a href="#9" class="apg-link">9</a>
+                                <a href="#10" class="apg-link">10</a>
+                                <a href="#11" class="apg-link">11</a>
+                                <a href="#12" class="apg-link">12</a>
+                                <a href="#13" class="apg-link">13</a>
+                                <a href="#14" class="apg-link">14</a>
+                                <a href="#15" class="apg-link">15</a>
+                                <a href="#16" class="apg-link">16</a>
+                                <a href="#17" class="apg-link">17</a>
+                                <a href="#18" class="apg-link">18</a>
+                                <a href="#19" class="apg-link">19</a>
+                                <a href="#20" class="apg-link">20</a>
+                            </div>
+                            <a href="#next" class="apg-next-link">→</a>
                         </div>
-                        <a href="#next" class="apg-next-link">→</a>
                     </div>
                 </div>
+                <pre class="code">
+$(document).ready(function() {
+    $('#paginator-simple').aPagination({
+        totalPages: 20,
+        currentPage: 4
+    });
+});
+                </pre>
             </div>
-
-            <div id="paginator2" class="apg-container">
-                <div class="apg-more-container"><a href="#more" class="apg-more-link">More ↓</a></div>
-                <div class="apg-pages-container">
-                    <div class="apg-pages-links">
-                        <a href="#prev" class="apg-prev-link">←</a>
-                        <div class="apg-pages">
-                            <a href="#1" class="apg-link">1</a>
-                            <a href="#2" class="apg-link">2</a>
-                            <a href="#3" class="apg-link active">3</span>
-                            <a href="#4" class="apg-link">4</a>
-                            <a href="#5" class="apg-link">5</a>
-                            <a href="#6" class="apg-link">6</a>
-                            <a href="#7" class="apg-link">7</a>
-                            <a href="#8" class="apg-link">8</a>
-                            <a href="#9" class="apg-link">9</a>
-                            <a href="#10" class="apg-link">10</a>
-                            <a href="#11" class="apg-link">11</a>
-                            <a href="#12" class="apg-link">12</a>
-                            <a href="#13" class="apg-link">13</a>
-                            <a href="#14" class="apg-link">14</a>
-                            <a href="#15" class="apg-link">15</a>
-                            <a href="#16" class="apg-link">16</a>
-                            <a href="#17" class="apg-link">17</a>
-                            <a href="#18" class="apg-link">18</a>
-                            <a href="#19" class="apg-link">19</a>
-                            <a href="#20" class="apg-link">20</a>
+            <div id="example_2">
+                <h3>Setup some options</h3>
+                <div id="paginator-options" class="apg-container">
+                    <div class="apg-more-container"><a href="#more" class="apg-more-link">More ↓</a></div>
+                    <div class="apg-pages-container">
+                        <div class="apg-pages-links">
+                            <a href="#prev" class="apg-prev-link">←</a>
+                            <div class="apg-pages">
+                                <a href="#1" class="apg-link">1</a>
+                                <a href="#2" class="apg-link">2</a>
+                                <a href="#3" class="apg-link active">3</span>
+                                <a href="#4" class="apg-link">4</a>
+                                <a href="#5" class="apg-link">5</a>
+                                <a href="#6" class="apg-link">6</a>
+                                <a href="#7" class="apg-link">7</a>
+                                <a href="#8" class="apg-link">8</a>
+                                <a href="#9" class="apg-link">9</a>
+                                <a href="#10" class="apg-link">10</a>
+                                <a href="#11" class="apg-link">11</a>
+                                <a href="#12" class="apg-link">12</a>
+                                <a href="#13" class="apg-link">13</a>
+                                <a href="#14" class="apg-link">14</a>
+                                <a href="#15" class="apg-link">15</a>
+                                <a href="#16" class="apg-link">16</a>
+                                <a href="#17" class="apg-link">17</a>
+                                <a href="#18" class="apg-link">18</a>
+                                <a href="#19" class="apg-link">19</a>
+                                <a href="#20" class="apg-link">20</a>
+                            </div>
+                            <a href="#next" class="apg-next-link">→</a>
                         </div>
-                        <a href="#next" class="apg-next-link">→</a>
                     </div>
                 </div>
+                <pre class="code">
+$('#paginator-options').aPagination({
+    showMoreButton: true,
+    showNextPrevButtons: false,
+    totalPages: 123,
+    currentPage: 24,
+    order: 'reverse',
+    linksCount: 'max',
+    scrollBy: '4%',
+    onMore: function(currentPage, newPage, event) {
+        alert('On More Callback!');
+
+        return true;
+    }
+});
+                </pre>
+            </div>
+
+            <div id="example_3">
+                <h3>Adaptive version</h3>
+                <div id="paginator-adaptive" class="apg-container">
+                    <div class="apg-more-container"><a href="#more" class="apg-more-link">More ↓</a></div>
+                    <div class="apg-pages-container">
+                        <div class="apg-pages-links">
+                            <a href="#prev" class="apg-prev-link">Prev</a>
+                            <div class="apg-pages">
+                                <a href="#1" class="apg-link">1</a>
+                                <a href="#2" class="apg-link">2</a>
+                                <a href="#3" class="apg-link active">3</span>
+                                <a href="#4" class="apg-link">4</a>
+                                <a href="#5" class="apg-link">5</a>
+                                <a href="#6" class="apg-link">6</a>
+                                <a href="#7" class="apg-link">7</a>
+                                <a href="#8" class="apg-link">8</a>
+                                <a href="#9" class="apg-link">9</a>
+                                <a href="#10" class="apg-link">10</a>
+                                <a href="#11" class="apg-link">11</a>
+                                <a href="#12" class="apg-link">12</a>
+                                <a href="#13" class="apg-link">13</a>
+                                <a href="#14" class="apg-link">14</a>
+                                <a href="#15" class="apg-link">15</a>
+                                <a href="#16" class="apg-link">16</a>
+                                <a href="#17" class="apg-link">17</a>
+                                <a href="#18" class="apg-link">18</a>
+                                <a href="#19" class="apg-link">19</a>
+                                <a href="#20" class="apg-link">20</a>
+                            </div>
+                            <a href="#next" class="apg-next-link">Next</a>
+                        </div>
+                    </div>
+                </div>
+                <pre class="code">
+$('#paginator-options').aPagination({
+    showMoreButton: true,
+    totalPages: 40,
+    currentPage: 4,
+    linksCount: 5,
+    allowResize: true
+});
+                </pre>
             </div>
         </div>
     </body>
