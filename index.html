@@ -17,11 +17,11 @@
                 $('#paginator').aPagination({
                     showMoreButton: true,
                     showSlider: true,
-                    showDots: false,
+                    showDots: true,
                     showNextPrevButtons: true,
                     totalPages: 25,
                     currentPage: 25,
-                    order: 'forward',
+                    order: 'reverse',
                     linksCount: 8,
                     resultContainer: '#result'
                 });
@@ -34,6 +34,7 @@
             </div>
 
             <div id="paginator" class="apg-container">
+                <div class="apg-more-container"><a href="#more" class="apg-more-link">More ↓</a></div>
                 <div class="apg-pages-container">
                     <div class="apg-pages-links">
                         <a href="#prev" class="apg-prev-link">←</a>

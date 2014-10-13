@@ -49,21 +49,9 @@
              */
             linkSelector: '.{cssPrefix}-link',
             /**
-             * Link template
+             * URL link template
              */
-            linkTemplate: '<a href="#{page}" class="{cssPrefix}-link">{page}</a>',
-            /**
-             * Prev link template
-             */
-            prevLinkTemplate: '<a href="#{page}" class="{cssPrefix}-prev-link">←</a>',
-            /**
-             * Next link template
-             */
-            nextLinkTemplate: '<a href="#{page}" class="{cssPrefix}-next-link">→</a>',
-            /**
-             * More link template
-             */
-            moreLinkTemplate: '<a href="#more" class="{cssPrefix}-more-link">More ↓</a>',
+            urlTemplate: '#{page}',
             /**
              * Container wich contain result
              */
@@ -153,11 +141,6 @@
         cfg.nextLinkSelector = cfg.nextLinkSelector.replace("{cssPrefix}", cfg.cssPrefix);
         cfg.linkSelector = cfg.linkSelector.replace("{cssPrefix}", cfg.cssPrefix);
 
-        cfg.linkTemplate = cfg.linkTemplate.replace("{cssPrefix}", cfg.cssPrefix);
-        cfg.prevLinkTemplate = cfg.prevLinkTemplate.replace("{cssPrefix}", cfg.cssPrefix);
-        cfg.nextLinkTemplate = cfg.nextLinkTemplate.replace("{cssPrefix}", cfg.cssPrefix);
-        cfg.moreLinkTemplate = cfg.moreLinkTemplate.replace("{cssPrefix}", cfg.cssPrefix);
-
         var self = {
             _init: function(el) {
                 self._paginationContainer = $(el);
@@ -165,12 +148,25 @@
                 self._pagesContainer = self._paginationContainer.find('.' + cfg.cssPrefix + '-pages');
 
                 self._pagesContainer.empty();
-                var link = cfg.linkTemplate.replace(/{page}/g, cfg.totalPages);
+
+                var url = cfg.urlTemplate.replace(/{page}/g, cfg.totalPages)
+                var link = '<a href="' + url + '" class="' + cfg.linkSelector.slice(1) + '">' + cfg.totalPages + '</a>';
                 self._pagesContainer.append(link);
 
+                self._pagesContainer.css({'margin-left': 0, 'margin-right': 0});
                 if (!cfg.showNextPrevButtons) {
-                    $('.' + cfg.cssPrefix + '-next-link, .' + cfg.cssPrefix + '-prev-link').remove();
-                    self._pagesContainer.css({'margin-left': 0, 'margin-right': 0});
+                    $(cfg.prevLinkSelector + ', ' + cfg.nextLinkSelector).remove();
+
+                    self._pnLinksWidth = 0;
+                }
+                else {
+                    var nextLink = $(cfg.nextLinkSelector);
+                    var prevLink = $(cfg.prevLinkSelector);
+
+                    self._nextLinkContent = nextLink.html();
+                    self._prevLinkContent = prevLink.html();
+
+                    self._pnLinksWidth = Math.max(nextLink.innerWidth(), prevLink.innerWidth());
                 }
 
                 if (cfg.showDots) {
@@ -178,7 +174,7 @@
                 }
 
                 if (cfg.linksCount === 'max') {
-                    cfg.linksCount = Math.ceil(self._pagesContainer.width() / $(cfg.linkSelector).innerWidth());
+                    cfg.linksCount = Math.ceil(self._pagesWidth / $(cfg.linkSelector).innerWidth());
                 }
 
                 if (cfg.totalPages <= cfg.linksCount) {
@@ -186,7 +182,7 @@
                     cfg.showSlider = false;
                 }
 
-                if (typeof cfg.scrollBy == 'string' && cfg.scrollBy.slice(-1) == '%') {
+                if (typeof cfg.scrollBy === 'string' && cfg.scrollBy.slice(-1) === '%') {
                     var pValue = cfg.scrollBy.slice(0, -1);
 
                     cfg.scrollBy = Math.ceil(cfg.totalPages / 100 * pValue);
@@ -200,27 +196,27 @@
                 }
 
                 self._linkPadding = $(cfg.linkSelector).innerWidth() - $(cfg.linkSelector).width();
-                self._linkWidth = Math.floor(self._pagesContainer.width() / cfg.linksCount - self._linkPadding);
+                self._pagesWidth = self._pagesContainer.width() - 2*self._pnLinksWidth;
+                self._linkWidth = Math.floor(self._pagesWidth / cfg.linksCount - self._linkPadding);
                 self._linkWidthFull = self._linkWidth + self._linkPadding;
+
+                self.displayedLinksCount = cfg.linksCount;
+                if (cfg.showDots) {
+                    self.displayedLinksCount -= 2;
+                }
                 
                 self._pagesContainer.empty();
                 self._renderPages();
 
-                $(document).on('click', '.' + cfg.cssPrefix + '-link', self._link);
+                $(document).on('click',  cfg.linkSelector, self._link);
 
                 if (cfg.showNextPrevButtons) {
-                    $(document).on('click', '.' + cfg.cssPrefix + '-next-link', self._next);
-                    $(document).on('click', '.' + cfg.cssPrefix + '-prev-link', self._prev);
+                    $(document).on('click', cfg.nextLinkSelector, self._next);
+                    $(document).on('click', cfg.prevLinkSelector, self._prev);
                 }
 
                 if (cfg.showMoreButton) {
-                    self._paginationContainer.prepend(
-                        ('<div class="{cssPrefix}-more-container">' +
-                            cfg.moreLinkTemplate +
-                        '</div>').replace(/{cssPrefix}/g, cfg.cssPrefix)
-                    );
-
-                    $(document).on('click', '.' + cfg.cssPrefix + '-more-link', self._more);
+                    $(document).on('click', cfg.moreLinkSelector, self._more);
                 }
 
                 if (cfg.showSlider) {
@@ -232,25 +228,17 @@
                         '</div>').replace(/{cssPrefix}/g, cfg.cssPrefix)
                     );
 
-                    var cPagesWidth = (self._linkWidth + self._linkPadding) * cfg.linksCount;
-                    var sideMargin = (self._paginationContainer.width() - cPagesWidth) / 2;
-
                     self._sliderContainer = self._paginationContainer.find('.' + cfg.cssPrefix + '-slider-container');
-                    self._sliderContainer.width(cPagesWidth).css({'margin-left': sideMargin + 'px', 'margin-right': sideMargin + 'px'});
+                    self._sliderContainer.css({'margin-left': self._pnLinksWidth + 'px', 'margin-right': self._pnLinksWidth + 'px'});
 
                     var scroller = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-scroller');
                     var flag = self._sliderContainer.find('.' + cfg.cssPrefix + '-slider-flag');
-
-                    var renderPages = cfg.totalPages;
-                    if (cfg.showDots) {
-                        renderPages -= 2;
-                    }
 
                     self._slider = {
                         drag: false,
                         scroller: scroller,
                         flag: flag,
-                        scrollCoeff: (renderPages * self._linkWidthFull - self._pagesContainer.width()) / (self._sliderContainer.width() - scroller.width()),
+                        scrollCoeff: (cfg.totalPages * self._linkWidthFull - self._pagesWidth) / (self._sliderContainer.width() - scroller.width()),
                         scrollFlagCoeff: self._sliderContainer.width() / cfg.totalPages,
                         scrollerOffset: self._sliderContainer.offset().left,
                         scrollerMinX: 0,
@@ -424,7 +412,7 @@
                                 self._paginationContainer.removeClass('show-first-dots');
                             }
 
-                            if (self._startPage != cfg.totalPages - cfg.linksCount - 1) {
+                            if (self._startPage != cfg.totalPages - self.displayedLinksCount - 1) {
                                 self._paginationContainer.addClass('show-last-dots');
                             }
                             else {
@@ -441,7 +429,7 @@
                                 self._paginationContainer.removeClass('show-first-dots');
                             }
 
-                            if (self._startPage != cfg.linksCount + 2) {
+                            if (self._startPage != self.displayedLinksCount + 2) {
                                 self._paginationContainer.addClass('show-last-dots');
                             }
                             else {
@@ -459,32 +447,44 @@
                         }
                     }
 
+                    var url = '';
                     if (cfg.showNextPrevButtons) {
                         var disable = false;
-                        var p = cfg.currentPage - 1;
+
+                        var p = cfg.currentPage - self._direction;
                         if (p < 1) {
                             p = 1;
                             disable = true;
                         }
-
-                        link = $(cfg.prevLinkTemplate.replace(/{page}/g, p));
-                        link = link.data('page', p);
-                        if (disable) {
-                            link.addClass('disable');
-                        }
-
-                        $('.' + cfg.cssPrefix + '-prev-link').replaceWith(link);
-
-                        disable = false;
-
-                        p = cfg.currentPage + 1;
-                        if (p > cfg.totalPages) {
+                        else if (p > cfg.totalPages) {
                             p = cfg.totalPages;
                             disable = true;
                         }
 
-                        link = $(cfg.nextLinkTemplate.replace(/{page}/g, p));
-                        link = link.data('page', p);
+                        url = cfg.urlTemplate.replace(/{page}/g, p)
+                        link = $('<a href="' + url + '" class="' + cfg.prevLinkSelector.slice(1) + '">' + self._prevLinkContent + '</a>');
+                        link.data('page', p).width(self._pnLinksWidth - self._linkPadding);
+                        if (disable) {
+                            link.addClass('disable');
+                        }
+
+                        $(cfg.prevLinkSelector).replaceWith(link);
+
+                        disable = false;
+
+                        p = cfg.currentPage + self._direction;
+                        if (p < 1) {
+                            p = 1;
+                            disable = true;
+                        }
+                        else if (p > cfg.totalPages) {
+                            p = cfg.totalPages;
+                            disable = true;
+                        }
+
+                        url = cfg.urlTemplate.replace(/{page}/g, p)
+                        link = $('<a href="' + url + '" class="' + cfg.nextLinkSelector.slice(1) + '">' + self._nextLinkContent + '</a>');
+                        link.data('page', p).width(self._pnLinksWidth - self._linkPadding);
                         if (disable) {
                             link.addClass('disable');
                         }
@@ -492,10 +492,12 @@
                         $('.' + cfg.cssPrefix + '-next-link').replaceWith(link);
                     }
 
-                    for (var i = 0; i < cfg.linksCount; i++) {
+                    for (var i = 0; i < self.displayedLinksCount; i++) {
                         var p = sP + i*self._direction;
-                        link = $(cfg.linkTemplate.replace(/{page}/g, p));
-                        link = link.data('page', p);
+
+                        url = cfg.urlTemplate.replace(/{page}/g, p)
+                        link = $('<a href="' + url + '" class="' + cfg.linkSelector.slice(1) + '">' + p + '</a>');
+                        link.data('page', p);
 
                         if (firstRender) {
                             self._pagesContainer.append(link);
@@ -515,42 +517,37 @@
                 }
                 else {
                     self._pagesContainer.empty();
+                    self._pagesContainer.css({'margin-left': self._pnLinksWidth + 'px', 'margin-right': self._pnLinksWidth + 'px'});
 
-                    var cPagesWidth = (self._linkWidth + self._linkPadding) * cfg.linksCount;
-                    var sideMargin = (self._paginationContainer.width() - cPagesWidth) / 2;
-
-                    self._pagesContainer.width(cPagesWidth).css({'margin-left': sideMargin + 'px', 'margin-right': sideMargin + 'px'});
-
+                    var url = '';
                     if (cfg.showDots) {
-                        var margin = sideMargin + (self._linkWidth + self._linkPadding) + 'px';
+                        var margin = self._pnLinksWidth + self._linkWidthFull + 'px';
 
-                        cfg.linksCount -= 2;
-
-                        self._pagesContainer
-                            .width(cPagesWidth - 2*(self._linkWidth + self._linkPadding))
-                            .css({'margin-left': margin, 'margin-right': margin});
+                        self._pagesContainer.css({'margin-left': margin, 'margin-right': margin});
                     }
 
                     if (cfg.order === 'forward') {
                         self._startPage = 1;
                         
                         if (cfg.showDots) {
-                            link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
-                            link = $(link).data('page', 1).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            url = cfg.urlTemplate.replace(/{page}/g, self._startPage)
+                            link = $('<a href="' + url + '" class="' + cfg.cssPrefix + '-first-link ' + cfg.linkSelector.slice(1) + '">' + self._startPage + '</a>');
+                            link.data('page', 1).addClass(cfg.cssPrefix + '-first-link').css('left', self._pnLinksWidth + 'px').insertBefore(self._pagesContainer);
                             
                             if (1 == cfg.currentPage) {
-                                $(link).addClass('active');
+                                link.addClass('active');
                             }
                         }
 
                         renderLine(true);
 
                         if (cfg.showDots) {
-                            link = cfg.linkTemplate.replace(/{page}/g, cfg.totalPages);
-                            link = $(link).data('page', cfg.totalPages).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                            url = cfg.urlTemplate.replace(/{page}/g, cfg.totalPages)
+                            link = $('<a href="' + url + '" class="' + cfg.cssPrefix + '-last-link ' + cfg.linkSelector.slice(1) + '">' + cfg.totalPages + '</a>');
+                            link.data('page', cfg.totalPages).css('right', self._pnLinksWidth + 'px').insertAfter(self._pagesContainer);
                             
                             if (cfg.totalPages == cfg.currentPage) {
-                                $(link).addClass('active');
+                                link.addClass('active');
                             }
                         }
                     }
@@ -558,22 +555,24 @@
                         self._startPage = cfg.totalPages;
 
                         if (cfg.showDots) {
-                            link = cfg.linkTemplate.replace(/{page}/g, self._startPage);
-                            link = $(link).data('page', self._startPage).addClass(cfg.cssPrefix + '-first-link').css('left', sideMargin + 'px').insertBefore(self._pagesContainer);
+                            url = cfg.urlTemplate.replace(/{page}/g, cfg.totalPages)
+                            link = $('<a href="' + url + '" class="' + cfg.cssPrefix + '-first-link ' + cfg.linkSelector.slice(1) + '">' + cfg.totalPages + '</a>');
+                            link.data('page', self._startPage).css('left', self._pnLinksWidth + 'px').insertBefore(self._pagesContainer);
                             
                             if (cfg.totalPages == cfg.currentPage) {
-                                $(link).addClass('active');
+                                link.addClass('active');
                             }
                         }
 
                         renderLine(true);
 
                         if (cfg.showDots) {
-                            link = cfg.linkTemplate.replace(/{page}/g, 1);
-                            link = $(link).data('page', 1).addClass(cfg.cssPrefix + '-last-link').css('right', sideMargin + 'px').insertAfter(self._pagesContainer);
+                            url = cfg.urlTemplate.replace(/{page}/g, 1)
+                            link = $('<a href="' + url + '" class="' + cfg.cssPrefix + '-last-link ' + cfg.linkSelector.slice(1) + '">' + 1 + '</a>');
+                            link.data('page', 1).css('right', self._pnLinksWidth + 'px').insertAfter(self._pagesContainer);
 
                             if (1 == cfg.currentPage) {
-                                $(link).addClass('active');
+                                link.addClass('active');
                             }
                         }
                     }
@@ -611,7 +610,7 @@
 
                 self._slider.drag = true;
 
-                var newStartPage = Math.floor(newScrollerPosition * self._slider.scrollCoeff / self._linkWidthFull);
+                var newStartPage = Math.ceil(newScrollerPosition * self._slider.scrollCoeff / self._linkWidthFull);
 
                 if (cfg.order === 'forward') {
                     self._startPage = newStartPage + 1;
@@ -619,9 +618,13 @@
                 else if (cfg.order === 'reverse') {
                     self._startPage = cfg.totalPages - newStartPage;
                 }
+
+                self._checkPagesInterval();
                 self._renderPages();
 
                 self._slider.scroller.css('left', newScrollerPosition + 'px');
+
+                event.preventDefault ? event.preventDefault() : event.returnValue = false
             }, 
 
             _wheelScroll: function(event) {
@@ -639,13 +642,13 @@
                         self._startPage = 1;
                     }
                     if (cfg.showDots) {
-                        if (self._startPage > cfg.totalPages - cfg.linksCount - self._direction) {
-                            self._startPage = cfg.totalPages - cfg.linksCount - self._direction;
+                        if (self._startPage > cfg.totalPages - self.displayedLinksCount - self._direction) {
+                            self._startPage = cfg.totalPages - self.displayedLinksCount - self._direction;
                         }
                     }
                     else {
-                        if (self._startPage > cfg.totalPages - cfg.linksCount + self._direction) {
-                            self._startPage = cfg.totalPages - cfg.linksCount + self._direction;
+                        if (self._startPage > cfg.totalPages - self.displayedLinksCount + self._direction) {
+                            self._startPage = cfg.totalPages - self.displayedLinksCount + self._direction;
                         }
                     }
                 }
@@ -654,20 +657,20 @@
                         self._startPage = cfg.totalPages;
                     }
                     if (cfg.showDots) {
-                        if (self._startPage < cfg.linksCount - 2*self._direction) {
-                            self._startPage = cfg.linksCount - 2*self._direction;
+                        if (self._startPage < self.displayedLinksCount - 2*self._direction) {
+                            self._startPage = self.displayedLinksCount - 2*self._direction;
                         }
                     }
                     else {
-                        if (self._startPage < cfg.linksCount) {
-                            self._startPage = cfg.linksCount;
+                        if (self._startPage < self.displayedLinksCount) {
+                            self._startPage = self.displayedLinksCount;
                         }
                     }
                 }
             },
 
             _scrollToPage: function(page) {
-                var halfLinksPage = Math.floor(cfg.linksCount / 2);
+                var halfLinksPage = Math.floor(self.displayedLinksCount / 2);
                 if (page > halfLinksPage || cfg.totalPages - page < halfLinksPage) {
                     self._startPage = page - halfLinksPage*self._direction;
                 }
@@ -676,11 +679,11 @@
                         self._startPage = 1;
                     }
                     else if (cfg.order === 'reverse') {
-                        self._startPage = cfg.linksCount;
+                        self._startPage = self.displayedLinksCount;
                     }
                 }
                 else if (cfg.totalPages - page > halfLinksPage) {
-                    self._startPage = cfg.totalPages + cfg.linksCount*self._direction;
+                    self._startPage = cfg.totalPages + self.displayedLinksCount*self._direction;
                 }
 
                 if (cfg.showDots) {

@@ -32,21 +32,21 @@
 	height: 32px;
 }
 
-.apg-pages-container .apg-prev-link,
-.apg-pages-container .apg-next-link,
 .apg-pages-container .apg-first-link,
-.apg-pages-container .apg-last-link {
+.apg-pages-container .apg-last-link,
+.apg-pages-container .apg-next-link,
+.apg-pages-container .apg-prev-link {
 	position: absolute;
 }
 
-.apg-pages-container .apg-prev-link,
-.apg-pages-container .apg-first-link {
+.apg-pages-container .apg-first-link,
+.apg-pages-container .apg-prev-link {
 	left: 0;
 	top: 0;
 }
 
-.apg-pages-container .apg-next-link,
-.apg-pages-container .apg-last-link {
+.apg-pages-container .apg-last-link,
+.apg-pages-container .apg-next-link {
 	right: 0;
 	top: 0;
 }
