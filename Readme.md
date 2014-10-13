@@ -50,17 +50,8 @@ Options
 **linkSelector** - CSS selector for page link element  
 *Default:* `'.{cssPrefix}-link'`
 
-**linkTemplate** - Link template  
-*Default:* `'<a href="#{page}" class="{cssPrefix}-link">{page}</a>'`
-
-**prevLinkTemplate** - Prev link template  
-*Default:* `'<a href="#{page}" class="{cssPrefix}-prev-link">←</a>'`
-
-**nextLinkTemplate** - Next link template  
-*Default:* `'<a href="#{page}" class="{cssPrefix}-next-link">←</a>'`
-
-**moreLinkTemplate** - More link template  
-*Default:* `'<a href="#more" class="{cssPrefix}-more-link">More ↓</a>'`
+**urlTemplate** - URL template  
+*Default:* `'#{page}'`
 
 **resultContainer** - Container wich contain result  
 *Default:* `''`  
