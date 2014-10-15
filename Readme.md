@@ -8,12 +8,7 @@ aPagination is a flexible and simple pagination jQuery plugin with some features
 * Flexible (forward/reverse order, 'More' button, slider, prev/next buttons and others options)
 * AJAX data load
 
-License - GPLv3, Current version - 0.5.0
-
-Road Map
-===============
-* Update options without reinit plugin
-* Adaptive version
+License - MIT, Current version - 0.5.1
 
 Usage
 ===============
@@ -82,6 +77,7 @@ Options
 **scrollBy** - Scroll by number of pages  
 *Default:* `1`  
 *Note: Can be set by percentage - '2%'*
+*Note: Can be set for scroll by visible pages count - 'visible'*
 
 **order** - Pages order  
 *Default:* `'forward'`

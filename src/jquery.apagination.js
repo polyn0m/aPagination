@@ -1,4 +1,28 @@
 /*
+    The MIT License (MIT)
+
+    Copyright (c) 2014 Goncharov Ilia (https://github.com/polyn0m/aPagination)
+
+    Version - 0.5.1
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -10,11 +34,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-    Goncharov Ilia, 2014
-    Link - https://github.com/polyn0m/aPagination
-    Version - 0.4.0
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 (function($) {
@@ -86,6 +106,7 @@
             * Scroll by number of pages
             *
             * Can be set by percentage - '2%'
+            * Can be set by percentage - 'visible'
             */
             scrollBy: 1,
             /**
@@ -177,12 +198,6 @@
                     self._paginationContainer.addClass(cfg.cssPrefix + '-show-dots');
                 }
 
-                if (typeof cfg.scrollBy === 'string' && cfg.scrollBy.slice(-1) === '%') {
-                    var pValue = cfg.scrollBy.slice(0, -1);
-
-                    cfg.scrollBy = Math.ceil(cfg.totalPages / 100 * pValue);
-                }
-
                 if (cfg.order === 'forward') {
                     self._direction = 1;        
                 }
@@ -191,7 +206,7 @@
                 }
 
                 self._linkPadding = self._paginationContainer.find(cfg.linkSelector).innerWidth() - self._paginationContainer.find(cfg.linkSelector).width();
-                self._pagesWidth = self._pagesContainer.width() - 2*self._pnLinksWidth;
+                self._pagesWidth = self._pagesContainer.width() - 2*self._pnLinksWidth - 2; // Need delta for float errors
 
                 self._linksCount = cfg.linksCount;
                 if (cfg.linksCount === 'max') {
@@ -207,9 +222,21 @@
                 self._linkWidth = self._pagesWidth / self._linksCount - self._linkPadding;
                 self._linkWidthFull = self._linkWidth + self._linkPadding;
 
-                self.displayedLinksCount = self._linksCount;
+                self._displayedLinksCount = self._linksCount;
                 if (cfg.showDots) {
-                    self.displayedLinksCount -= 2;
+                    self._displayedLinksCount -= 2;
+                }
+
+                self._scrollBy = cfg.scrollBy;
+                if (typeof cfg.scrollBy === 'string') {
+                    if (cfg.scrollBy.slice(-1) === '%') {
+                        var pValue = cfg.scrollBy.slice(0, -1);
+
+                        self._scrollBy = Math.ceil(cfg.totalPages / 100 * pValue);
+                    }
+                    else if (cfg.scrollBy === 'visible') {
+                        self._scrollBy = self._displayedLinksCount;
+                    }
                 }
                 
                 self._pagesContainer.empty();
@@ -229,6 +256,9 @@
                 if (cfg.showMoreButton) {
                     self._paginationContainer.on('click', cfg.moreLinkSelector, $.proxy(self._more, this));
                 }
+                else {
+                    self._paginationContainer.find(cfg.moreLinkSelector).remove();
+                }
 
                 if (self._showSlider) {
                     self._initSlider();
@@ -239,13 +269,6 @@
                 }
 
                 self._scrollToPage(cfg.currentPage);
-
-                if (!cfg.loadUrl) {
-                    console.log('aPagination: Data URL not set, data will not be loaded!');
-                }
-                else if (!cfg.resultContainer) {
-                    console.log('aPagination: Result container not set, data will not be displayed!');
-                }
             },
 
             _initSlider: function() {
@@ -313,9 +336,16 @@
                 self._linkWidth = self._pagesWidth / self._linksCount - self._linkPadding;
                 self._linkWidthFull = self._linkWidth + self._linkPadding;
 
-                self.displayedLinksCount = self._linksCount;
+                self._displayedLinksCount = self._linksCount;
                 if (cfg.showDots) {
-                    self.displayedLinksCount -= 2;
+                    self._displayedLinksCount -= 2;
+                }
+
+                self._scrollBy = cfg.scrollBy;
+                if (typeof cfg.scrollBy === 'string') {
+                    if (cfg.scrollBy === 'visible') {
+                        self._scrollBy = self._displayedLinksCount;
+                    }
                 }
 
                 if (self._showSlider) {
@@ -487,7 +517,7 @@
                                 self._paginationContainer.removeClass('show-first-dots');
                             }
 
-                            if (self._startPage != cfg.totalPages - self.displayedLinksCount - 1) {
+                            if (self._startPage != cfg.totalPages - self._displayedLinksCount - 1) {
                                 self._paginationContainer.addClass('show-last-dots');
                             }
                             else {
@@ -504,7 +534,7 @@
                                 self._paginationContainer.removeClass('show-first-dots');
                             }
 
-                            if (self._startPage != self.displayedLinksCount + 2) {
+                            if (self._startPage != self._displayedLinksCount + 2) {
                                 self._paginationContainer.addClass('show-last-dots');
                             }
                             else {
@@ -536,14 +566,20 @@
                             disable = true;
                         }
 
-                        url = cfg.urlTemplate.replace(/{page}/g, p)
-                        link = $('<a href="' + url + '" class="' + cfg.prevLinkSelector.slice(1) + '">' + self._prevLinkContent + '</a>');
-                        link.data('page', p).width(self._pnLinksWidth - self._linkPadding);
-                        if (disable) {
-                            link.addClass('disable');
+                        url = cfg.urlTemplate.replace(/{page}/g, p);
+                        if (firstRender) {
+                            link = $('<a href="' + url + '" class="' + cfg.prevLinkSelector.slice(1) + '">' + self._prevLinkContent + '</a>');
+                            link.data('page', p).width(self._pnLinksWidth - self._linkPadding);
+
+                            self._paginationContainer.find(cfg.prevLinkSelector).replaceWith(link);
+                        }
+                        else {
+                            self._paginationContainer.find(cfg.prevLinkSelector).data('page', p).attr('href', url);
                         }
 
-                        self._paginationContainer.find(cfg.prevLinkSelector).replaceWith(link);
+                        if (disable) {
+                            self._paginationContainer.find(cfg.prevLinkSelector).addClass('disable');
+                        }
 
                         disable = false;
 
@@ -558,27 +594,33 @@
                         }
 
                         url = cfg.urlTemplate.replace(/{page}/g, p)
-                        link = $('<a href="' + url + '" class="' + cfg.nextLinkSelector.slice(1) + '">' + self._nextLinkContent + '</a>');
-                        link.data('page', p).width(self._pnLinksWidth - self._linkPadding);
-                        if (disable) {
-                            link.addClass('disable');
+                        if (firstRender) {
+                            link = $('<a href="' + url + '" class="' + cfg.nextLinkSelector.slice(1) + '">' + self._nextLinkContent + '</a>');
+                            link.data('page', p).width(self._pnLinksWidth - self._linkPadding);
+
+                            self._paginationContainer.find(cfg.nextLinkSelector).replaceWith(link);
+                        }
+                        else {
+                            self._paginationContainer.find(cfg.nextLinkSelector).data('page', p).attr('href', url);
                         }
 
-                        self._paginationContainer.find(cfg.nextLinkSelector).replaceWith(link);
+                        if (disable) {
+                            self._paginationContainer.find(cfg.nextLinkSelector).addClass('disable');
+                        }
                     }
 
-                    for (var i = 0; i < self.displayedLinksCount; i++) {
+                    for (var i = 0; i < self._displayedLinksCount; i++) {
                         var p = sP + i*self._direction;
 
                         url = cfg.urlTemplate.replace(/{page}/g, p)
-                        link = $('<a href="' + url + '" class="' + cfg.linkSelector.slice(1) + '">' + p + '</a>');
-                        link.data('page', p);
-
                         if (firstRender) {
+                            link = $('<a href="' + url + '" class="' + cfg.linkSelector.slice(1) + '">' + p + '</a>');
+                            link.data('page', p);
+
                             self._pagesContainer.append(link);
                         }
                         else {
-                            self._pagesContainer.children().eq(i).replaceWith(link);
+                            self._pagesContainer.children().eq(i).attr('href', url).text(p).data('page', p);
                         }
 
                         if (p == cfg.currentPage) {
@@ -708,7 +750,7 @@
 
             _wheelScroll: function(event) {
                 if (cfg.totalPages > self._linksCount) {
-                    self._startPage +=  event.deltaY*cfg.scrollBy*self._direction*-1;
+                    self._startPage +=  event.deltaY*self._scrollBy*self._direction*-1;
 
                     self._checkPagesInterval();
 
@@ -725,13 +767,13 @@
                         self._startPage = 1;
                     }
                     if (cfg.showDots) {
-                        if (self._startPage > cfg.totalPages - self.displayedLinksCount - self._direction) {
-                            self._startPage = cfg.totalPages - self.displayedLinksCount - self._direction;
+                        if (self._startPage > cfg.totalPages - self._displayedLinksCount - self._direction) {
+                            self._startPage = cfg.totalPages - self._displayedLinksCount - self._direction;
                         }
                     }
                     else {
-                        if (self._startPage > cfg.totalPages - self.displayedLinksCount + self._direction) {
-                            self._startPage = cfg.totalPages - self.displayedLinksCount + self._direction;
+                        if (self._startPage > cfg.totalPages - self._displayedLinksCount + self._direction) {
+                            self._startPage = cfg.totalPages - self._displayedLinksCount + self._direction;
                         }
                     }
                 }
@@ -740,20 +782,20 @@
                         self._startPage = cfg.totalPages;
                     }
                     if (cfg.showDots) {
-                        if (self._startPage < self.displayedLinksCount - 2*self._direction) {
-                            self._startPage = self.displayedLinksCount - 2*self._direction;
+                        if (self._startPage < self._displayedLinksCount - 2*self._direction) {
+                            self._startPage = self._displayedLinksCount - 2*self._direction;
                         }
                     }
                     else {
-                        if (self._startPage < self.displayedLinksCount) {
-                            self._startPage = self.displayedLinksCount;
+                        if (self._startPage < self._displayedLinksCount) {
+                            self._startPage = self._displayedLinksCount;
                         }
                     }
                 }
             },
 
             _scrollToPage: function(page) {
-                var halfLinksPage = Math.floor(self.displayedLinksCount / 2);
+                var halfLinksPage = Math.floor(self._displayedLinksCount / 2);
                 if (page > halfLinksPage || cfg.totalPages - page < halfLinksPage) {
                     self._startPage = page - halfLinksPage*self._direction;
                 }
@@ -762,11 +804,11 @@
                         self._startPage = 1;
                     }
                     else if (cfg.order === 'reverse') {
-                        self._startPage = self.displayedLinksCount;
+                        self._startPage = self._displayedLinksCount;
                     }
                 }
                 else if (cfg.totalPages - page > halfLinksPage) {
-                    self._startPage = cfg.totalPages + self.displayedLinksCount*self._direction;
+                    self._startPage = cfg.totalPages + self._displayedLinksCount*self._direction;
                 }
 
                 if (cfg.showDots) {
