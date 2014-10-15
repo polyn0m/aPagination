@@ -21,12 +21,13 @@
 
                 $('#paginator-options').aPagination({
                     showMoreButton: true,
-                    showNextPrevButtons: false,
+                    showNextPrevButtons: true,
+                    showDots: true,
                     totalPages: 123,
                     currentPage: 24,
                     order: 'reverse',
                     linksCount: 'max',
-                    scrollBy: '4%',
+                    scrollBy: 'visible',
                     onMore: function(currentPage, newPage, event) {
                         alert('On More Callback!');
 
@@ -40,6 +41,18 @@
                     currentPage: 4,
                     linksCount: 5,
                     allowResize: true
+                });
+
+                $('#paginator-ajax').aPagination({
+                    showNextPrevButtons: false,
+                    showMoreButton: true,
+                    totalPages: 23,
+                    currentPage: 4,
+                    linksCount: 3,
+                    allowResize: true,
+                    loadUrl: '/data-load',
+                    pageParamName: 'pg',
+                    resultContainer: '#ajax-result'
                 });
             });
         </script>
@@ -147,12 +160,13 @@ $(document).ready(function() {
                 <pre class="code">
 $('#paginator-options').aPagination({
     showMoreButton: true,
-    showNextPrevButtons: false,
+    showNextPrevButtons: true,
+    showDots: true,
     totalPages: 123,
     currentPage: 24,
     order: 'reverse',
     linksCount: 'max',
-    scrollBy: '4%',
+    scrollBy: 'visible',
     onMore: function(currentPage, newPage, event) {
         alert('On More Callback!');
 
@@ -202,6 +216,52 @@ $('#paginator-options').aPagination({
     currentPage: 4,
     linksCount: 5,
     allowResize: true
+});
+                </pre>
+            </div>
+            <div id="example_4">
+                <h3>Ajax version</h3>
+                <div id="ajax-result"></div>
+                <div id="paginator-ajax" class="apg-container">
+                    <div class="apg-more-container"><a href="#more" class="apg-more-link">More ↓</a></div>
+                    <div class="apg-pages-container">
+                        <div class="apg-pages-links">
+                            <div class="apg-pages">
+                                <a href="#1" class="apg-link">1</a>
+                                <a href="#2" class="apg-link">2</a>
+                                <a href="#3" class="apg-link active">3</span>
+                                <a href="#4" class="apg-link">4</a>
+                                <a href="#5" class="apg-link">5</a>
+                                <a href="#6" class="apg-link">6</a>
+                                <a href="#7" class="apg-link">7</a>
+                                <a href="#8" class="apg-link">8</a>
+                                <a href="#9" class="apg-link">9</a>
+                                <a href="#10" class="apg-link">10</a>
+                                <a href="#11" class="apg-link">11</a>
+                                <a href="#12" class="apg-link">12</a>
+                                <a href="#13" class="apg-link">13</a>
+                                <a href="#14" class="apg-link">14</a>
+                                <a href="#15" class="apg-link">15</a>
+                                <a href="#16" class="apg-link">16</a>
+                                <a href="#17" class="apg-link">17</a>
+                                <a href="#18" class="apg-link">18</a>
+                                <a href="#19" class="apg-link">19</a>
+                                <a href="#20" class="apg-link">20</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <pre class="code">
+$('#paginator-options').aPagination({
+    showNextPrevButtons: false,
+    showMoreButton: true,
+    totalPages: 23,
+    currentPage: 4,
+    linksCount: 3,
+    allowResize: true,
+    loadUrl: '/data-load',
+    pageParamName: 'pg',
+    resultContainer: '#ajax-result'
 });
                 </pre>
             </div>
