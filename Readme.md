@@ -76,7 +76,7 @@ Options
 
 **scrollBy** - Scroll by number of pages  
 *Default:* `1`  
-*Note: Can be set by percentage - '2%'*
+*Note: Can be set by percentage - '2%'*  
 *Note: Can be set for scroll by visible pages count - 'visible'*
 
 **order** - Pages order  
